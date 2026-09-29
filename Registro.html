@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Personal - SIMECAR S.A.C.</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://galywfaztkjiybvopurq.supabase.co https://kardex-apis.angelve581.workers.dev; img-src 'self' data:;">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; color: #1f2937; }
+        .container { width: 100%; max-width: 520px; background: white; border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.35); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 32px 24px 28px; text-align: center; color: white; }
+        .header img { max-width: 200px; height: auto; margin-bottom: 12px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3)); }
+        .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+        .header p { font-size: 13px; color: #94a3b8; }
+        .body-content { padding: 28px 24px; }
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* Inputs */
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+        .input-group input { width: 100%; padding: 12px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-family: inherit; transition: all 0.2s; }
+        .input-group input:focus { outline: none; border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12); }
+        .input-group .hint { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+
+        /* Botones */
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(15, 118, 110, 0.3); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: white; border: 2px solid #cbd5e1; color: #475569; margin-top: 12px; }
+        .btn-secondary:hover { background: #f8fafc; }
+
+        /* Tarjeta resumen */
+        .resumen-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .resumen-card h3 { font-size: 13px; font-weight: 700; color: #0f766e; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .resumen-item { display: flex; justify-content: space-between; align-items: start; padding: 10px 0; border-bottom: 1px dashed #e2e8f0; gap: 12px; }
+        .resumen-item:last-child { border-bottom: none; }
+        .resumen-item .label { font-size: 12px; color: #6b7280; font-weight: 500; flex-shrink: 0; }
+        .resumen-item .value { font-size: 13px; color: #111827; font-weight: 600; text-align: right; word-break: break-word; }
+
+        /* Success screen */
+        .success-icon { width: 90px; height: 90px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; animation: bounceIn 0.5s ease-out; }
+        .success-icon i { font-size: 42px; color: white; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 60% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .success-title { font-size: 24px; font-weight: 800; color: #111827; margin-bottom: 10px; text-align: center; }
+        .success-text { font-size: 14px; color: #6b7280; line-height: 1.6; margin-bottom: 8px; text-align: center; }
+        .success-box { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 12px; padding: 16px; margin: 20px 0; text-align: center; }
+        .success-box p { font-size: 12px; color: #0f766e; font-weight: 600; margin-bottom: 4px; }
+        .success-box strong { font-size: 18px; color: #0f766e; letter-spacing: 2px; }
+
+        /* Errores */
+        .error-msg { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+        .error-msg.visible { display: block; }
+
+        /* Spinner */
+        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Info box */
+        .info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px; margin-bottom: 18px; display: flex; gap: 10px; align-items: start; }
+        .info-box i { color: #0284c7; font-size: 16px; margin-top: 2px; flex-shrink: 0; }
+        .info-box p { font-size: 12px; color: #1e40af; line-height: 1.5; }
+
+        @media (max-width: 480px) { .header { padding: 24px 18px 22px; } .body-content { padding: 22px 18px; } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <img src="fondo.png" alt="SIMECAR S.A.C.">
+            <h1>Registro de Personal</h1>
+            <p>Completa tus datos para acceder al Portal</p>
+        </div>
+
+        <div class="body-content">
+
+            <!-- PANTALLA 1: FORMULARIO -->
+            <div id="screen-form" class="screen active">
+                <div class="info-box">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <p>Completa tus datos correctamente. Una vez enviados, solo el área de RRHH podrá modificarlos.</p>
+                </div>
+
+                <div id="form-error" class="error-msg"></div>
+
+                <form id="form-registro">
+                    <div class="input-group">
+                        <label>Apellido y Nombre *</label>
+                        <input type="text" id="reg-nombre" required placeholder="Ej. VALDIVIEZO ELIAS ANGEL ARMANDO">
+                        <p class="hint">Escribe tu nombre completo como aparece en tu DNI</p>
+                    </div>
+
+                    <div class="input-group">
+                        <label>DNI *</label>
+                        <input type="text" id="reg-dni" required maxlength="8" placeholder="8 dígitos" pattern="\d{8}">
+                        <p class="hint">Será tu usuario para ingresar al Portal</p>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Usuario ISDP *</label>
+                        <input type="text" id="reg-isdp" required placeholder="Ej. angel.valdiviezo">
+                        <p class="hint">Tu usuario corporativo (sin @)</p>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Correo Personal (opcional)</label>
+                        <input type="email" id="reg-correo" placeholder="correo@gmail.com">
+                        <p class="hint">Para contactarte si es necesario</p>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Número de Celular (opcional)</label>
+                        <input type="tel" id="reg-celular" placeholder="Ej. 999888777">
+                    </div>
+
+                    <button type="submit" id="btn-continuar" class="btn btn-primary">
+                        <i class="fa-solid fa-arrow-right"></i> Continuar
+                    </button>
+                </form>
+            </div>
+
+            <!-- PANTALLA 2: CONFIRMACIÓN -->
+            <div id="screen-confirmar" class="screen">
+                <div class="resumen-card">
+                    <h3><i class="fa-solid fa-clipboard-check"></i> Verifica tus datos</h3>
+                    <div class="resumen-item">
+                        <span class="label">Nombre:</span>
+                        <span class="value" id="conf-nombre"></span>
+                    </div>
+                    <div class="resumen-item">
+                        <span class="label">DNI:</span>
+                        <span class="value" id="conf-dni"></span>
+                    </div>
+                    <div class="resumen-item">
+                        <span class="label">Usuario ISDP:</span>
+                        <span class="value" id="conf-isdp"></span>
+                    </div>
+                    <div class="resumen-item">
+                        <span class="label">Correo Personal:</span>
+                        <span class="value" id="conf-correo"></span>
+                    </div>
+                    <div class="resumen-item">
+                        <span class="label">Celular:</span>
+                        <span class="value" id="conf-celular"></span>
+                    </div>
+                </div>
+
+                <div class="info-box" style="background: #fef3c7; border-color: #fde68a;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: #d97706;"></i>
+                    <p style="color: #92400e;">Una vez confirmes, no podrás modificar estos datos. Solo RRHH podrá hacerlo. Verifica que todo esté correcto.</p>
+                </div>
+
+                <button onclick="confirmarRegistro()" id="btn-confirmar-registro" class="btn btn-primary">
+                    <i class="fa-solid fa-check"></i> Sí, enviar
+                </button>
+                <button onclick="volverAlFormulario()" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Corregir datos
+                </button>
+            </div>
+
+            <!-- PANTALLA 3: ÉXITO -->
+            <div id="screen-exito" class="screen">
+                <div class="success-icon"><i class="fa-solid fa-check"></i></div>
+                <h2 class="success-title">¡Registro guardado!</h2>
+                <p class="success-text">Tus datos han sido registrados exitosamente.</p>
+
+                <div class="success-box">
+                    <p>TU USUARIO PARA INGRESAR AL PORTAL ES:</p>
+                    <strong id="exito-dni"></strong>
+                </div>
+
+                <p class="success-text" style="font-size: 13px;">Ya puedes ingresar al Portal del Trabajador con tu DNI.</p>
+
+                <a href="Portal.html" class="btn btn-primary" style="text-decoration: none; margin-top: 20px;">
+                    <i class="fa-solid fa-house"></i> Ir al Portal
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let datosTemp = null;
+
+        function irA(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function mostrarError(msg) {
+            const el = document.getElementById('form-error');
+            el.textContent = msg;
+            el.classList.add('visible');
+            setTimeout(() => el.classList.remove('visible'), 6000);
+        }
+        document.getElementById('form-registro').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('btn-continuar');
+            const nombre = document.getElementById('reg-nombre').value.trim().toUpperCase();
+            const dni = document.getElementById('reg-dni').value.trim();
+            const isdp = document.getElementById('reg-isdp').value.trim();
+            const correo = document.getElementById('reg-correo').value.trim() || null;
+            const celular = document.getElementById('reg-celular').value.trim() || null;
+
+            // Validaciones
+            if (!nombre || nombre.length < 5) return mostrarError('Ingresa tu nombre completo.');
+            if (!/^\d{8}$/.test(dni)) return mostrarError('El DNI debe tener exactamente 8 dígitos.');
+            if (!isdp) return mostrarError('Ingresa tu usuario ISDP.');
+            if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return mostrarError('El correo personal no tiene un formato válido.');
+            if (celular && !/^\+?[0-9\s-]{7,15}$/.test(celular)) return mostrarError('El celular no tiene un formato válido.');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Verificando...';
+
+            try {
+                // Verificar que el DNI no esté ya registrado
+                const { data: existente, error: errorCheck } = await db
+                    .from('empleados')
+                    .select('id, nombre_completo')
+                    .eq('dni', dni)
+                    .maybeSingle();
+
+                if (errorCheck) throw errorCheck;
+
+                if (existente) {
+                    mostrarError(`Este DNI ya está registrado a nombre de ${existente.nombre_completo}. Si crees que es un error, contacta a RRHH.`);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i> Continuar';
+                    return;
+                }
+
+                // Guardar datos temporalmente
+                datosTemp = { nombre, dni, isdp, correo, celular };
+
+                // Mostrar pantalla de confirmación
+                document.getElementById('conf-nombre').textContent = nombre;
+                document.getElementById('conf-dni').textContent = dni;
+                document.getElementById('conf-isdp').textContent = isdp;
+                document.getElementById('conf-correo').textContent = correo || 'No especificado';
+                document.getElementById('conf-celular').textContent = celular || 'No especificado';
+
+                irA('screen-confirmar');
+
+            } catch (error) {
+                console.error(error);
+                mostrarError('Error al verificar: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i> Continuar';
+            }
+        });
+
+        function volverAlFormulario() {
+            irA('screen-form');
+        }
+
+        async function confirmarRegistro() {
+            if (!datosTemp) return;
+
+            const btn = document.getElementById('btn-confirmar-registro');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Guardando...';
+
+            try {
+                const { error } = await db.from('empleados').insert([{
+                    nombre_completo: datosTemp.nombre,
+                    dni: datosTemp.dni,
+                    correo_isdp: datosTemp.isdp,
+                    correo_personal: datosTemp.correo,
+                    celular: datosTemp.celular,
+                    estado: 'Activo',
+                    fecha_ingreso: null,
+                    fecha_termino: null
+                }]);
+
+                if (error) throw error;
+
+                // Mostrar éxito
+                document.getElementById('exito-dni').textContent = datosTemp.dni;
+                irA('screen-exito');
+
+            } catch (error) {
+                console.error(error);
+                mostrarError('Error al guardar: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Sí, enviar';
+            }
+        }
+    </script>
+</body>
+</html>

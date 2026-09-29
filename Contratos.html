@@ -1,0 +1,410 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Envío de Contratos - SIMECAR S.A.C.</title>
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://galywfaztkjiybvopurq.supabase.co https://kardex-apis.angelve581.workers.dev; img-src 'self' data:;">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+        <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; color: #1f2937; }
+            .container { width: 100%; max-width: 520px; background: white; border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.35); overflow: hidden; position: relative; }
+            .header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 32px 24px 28px; text-align: center; color: white; }
+            .header img { max-width: 200px; height: auto; margin-bottom: 12px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3)); }
+            .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 6px; }
+            .header p { font-size: 13px; color: #94a3b8; }
+            .form-body { padding: 28px 24px; }
+            .input-group { margin-bottom: 20px; }
+            .input-group > label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+            .input-group input[type="text"], .input-group input[type="month"], .input-group input[type="date"] { width: 100%; padding: 12px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-family: inherit; transition: all 0.2s; background: white; }
+            .input-group input:focus { outline: none; border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12); }
+            .radio-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+            .radio-option { position: relative; }
+            .radio-option input[type="radio"] { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; z-index: 2; margin: 0; }
+            .radio-label { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 13px; font-weight: 600; color: #6b7280; transition: all 0.2s; background: white; cursor: pointer; text-align: center; position: relative; z-index: 1; }
+            .radio-option input[type="radio"]:checked + .radio-label { border-color: #0f766e; background: #f0fdfa; color: #0f766e; box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12); }
+            .radio-label i { font-size: 14px; }
+            .file-drop { display: block; border: 2px dashed #cbd5e1; background: #f8fafc; border-radius: 10px; padding: 24px 16px; text-align: center; transition: all 0.2s; cursor: pointer; position: relative; }
+            .file-drop:hover, .file-drop.drag-over { border-color: #0f766e; background: #f0fdfa; }
+            .file-drop > i { font-size: 28px; color: #94a3b8; margin-bottom: 8px; display: block; }
+            .file-drop .file-text { font-size: 13px; color: #6b7280; }
+            .file-drop .file-link { color: #0f766e; font-weight: 600; text-decoration: underline; }
+            .file-drop .file-hint { font-size: 11px; color: #9ca3af; display: block; margin-top: 4px; }
+            .file-drop .file-name { margin-top: 12px; font-size: 12px; color: #0f766e; font-weight: 600; display: none; }
+            .file-drop .file-name.visible { display: block; }
+            .file-drop input[type="file"] { display: none; }
+            .btn-submit { width: 100%; padding: 14px; background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; margin-top: 8px; }
+            .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(15, 118, 110, 0.3); }
+            .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+            .success-screen { display: none; padding: 60px 32px; text-align: center; }
+            .success-screen.visible { display: block; }
+            .success-icon { width: 90px; height: 90px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; animation: bounceIn 0.5s ease-out; }
+            .success-icon i { font-size: 42px; color: white; }
+            @keyframes bounceIn { 0% { transform: scale(0); } 60% { transform: scale(1.1); } 100% { transform: scale(1); } }
+            .success-screen h2 { font-size: 24px; font-weight: 800; color: #111827; margin-bottom: 10px; }
+            .success-screen .empresa { color: #0f766e; font-weight: 700; }
+            .success-screen p { font-size: 14px; color: #6b7280; line-height: 1.6; margin-bottom: 8px; }
+            .success-screen .fecha { font-size: 12px; color: #9ca3af; margin-top: 20px; padding: 10px; background: #f9fafb; border-radius: 8px; display: inline-block; }
+            .btn-otro { margin-top: 24px; padding: 12px 24px; background: white; color: #0f766e; border: 2px solid #0f766e; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+            .btn-otro:hover { background: #f0fdfa; }
+            .alert { padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 16px; display: none; }
+            .alert.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+            .alert.visible { display: block; }
+            .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+            @keyframes spin { to { transform: rotate(360deg); } }
+            @media (max-width: 480px) { .header { padding: 24px 18px 22px; } .header h1 { font-size: 19px; } .form-body { padding: 22px 18px; } .radio-group { grid-template-columns: 1fr; } }
+        </style>
+    </head>
+    <body>
+
+        <div class="container">
+            <div class="header">
+                <img src="fondo.png" alt="SIMECAR S.A.C.">
+                <h1>Envío de Contratos</h1>
+                <p>Sistema de Gestión Documental</p>
+            </div>
+
+            <div class="form-body" id="form-container">
+                <div id="alert-error" class="alert error"></div>
+
+                <form id="form-contrato">
+                    <div class="input-group">
+                        <label for="nombre">Apellido y Nombre</label>
+                        <input type="text" id="nombre" required placeholder="Ej. Valdiviezo Elias, Angel">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="dni">DNI</label>
+                        <input type="text" id="dni" required maxlength="8" placeholder="8 dígitos" pattern="\d{8}">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Recibo por:</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="tipo-planilla" name="tipo" value="Planilla">
+                                <label for="tipo-planilla" class="radio-label">
+                                    <i class="fa-solid fa-briefcase"></i> Planilla
+                                </label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="tipo-honorarios" name="tipo" value="Recibo por Honorarios">
+                                <label for="tipo-honorarios" class="radio-label">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i> Honorarios
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group" id="grupo-fecha" style="display: none;">
+                        <label for="fecha-input" id="label-fecha">Fecha</label>
+                        <input type="month" id="fecha-input">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Archivo del contrato</label>
+                        <div class="file-drop" id="file-drop">
+                            <i class="fa-solid fa-file-arrow-up"></i>
+                            <div class="file-text">
+                                <span class="file-link">Seleccionar archivo</span>
+                                <span class="file-hint">PDF, Word o Imagen (máx 10 MB)</span>
+                            </div>
+                            <p class="file-name" id="file-name"></p>
+                            <input type="file" id="file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="btn-submit">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        Enviar a SIMECAR
+                    </button>
+                </form>
+            </div>
+
+            <div class="success-screen" id="success-screen">
+                <div class="success-icon"><i class="fa-solid fa-check"></i></div>
+                <h2>¡Enviado con éxito!</h2>
+                <p style="margin-bottom: 20px;">
+                    <strong>Contrato enviado a <span class="empresa">SIMECAR S.A.C.</span></strong>
+                </p>
+                <p>Gracias por tu envío. El área administrativa revisará tu documento.</p>
+                <div class="fecha" id="fecha-envio"></div>
+                <br>
+                <button class="btn-otro" onclick="resetForm()">
+                    <i class="fa-solid fa-rotate"></i> Enviar otro contrato
+                </button>
+                <a href="Portal.html" class="btn-otro" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; margin-top: 12px;">
+                    <i class="fa-solid fa-house"></i> Volver al Portal
+                </a>
+            </div>
+        </div>
+        <script>
+            const WORKER_URL = 'https://kardex-apis.angelve581.workers.dev';
+
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            let usuarioSesion = null;
+            let dniVerificado = null;
+            try {
+                const sesionStr = sessionStorage.getItem('portalSesion');
+                if (sesionStr) {
+                    usuarioSesion = JSON.parse(sesionStr);
+                }
+            } catch (e) {
+                usuarioSesion = null;
+            }
+            const form = document.getElementById('form-contrato');
+            const fileInput = document.getElementById('file-input');
+            const fileDrop = document.getElementById('file-drop');
+            const fileName = document.getElementById('file-name');
+            const grupoFecha = document.getElementById('grupo-fecha');
+            const labelFecha = document.getElementById('label-fecha');
+            const fechaInput = document.getElementById('fecha-input');
+            const btnSubmit = document.getElementById('btn-submit');
+            const alertError = document.getElementById('alert-error');
+            const formContainer = document.getElementById('form-container');
+            const successScreen = document.getElementById('success-screen');
+            const campoNombre = document.getElementById('nombre');
+            const campoDni = document.getElementById('dni');
+            window.addEventListener('DOMContentLoaded', () => {
+                if (usuarioSesion) {
+                    campoNombre.value = usuarioSesion.nombre_completo || '';
+                    campoNombre.readOnly = true;
+                    campoNombre.style.background = '#f1f5f9';
+                    campoNombre.style.cursor = 'not-allowed';
+                    campoNombre.parentElement.querySelector('label').innerHTML +=
+                        ' <span style="color: #0f766e; font-weight: 600; font-size: 11px;">✓ (desde el Portal)</span>';
+
+                    campoDni.value = usuarioSesion.dni || '';
+                    campoDni.readOnly = true;
+                    campoDni.style.background = '#f1f5f9';
+                    campoDni.style.cursor = 'not-allowed';
+                    campoDni.parentElement.querySelector('label').innerHTML +=
+                        ' <span style="color: #0f766e; font-weight: 600; font-size: 11px;">✓ (desde el Portal)</span>';
+
+                    dniVerificado = usuarioSesion.dni;
+                    return;
+                }
+                campoDni.addEventListener('input', async (e) => {
+                    const dni = e.target.value.trim();
+
+                    if (!/^\d{8}$/.test(dni)) {
+                        campoNombre.value = '';
+                        campoNombre.readOnly = false;
+                        campoNombre.style.background = '';
+                        campoNombre.style.color = '';
+                        campoNombre.placeholder = 'Ej. Valdiviezo Elias, Angel';
+                        dniVerificado = null;
+                        return;
+                    }
+
+                    try {
+                        const { data, error } = await db
+                            .from('empleados')
+                            .select('nombre_completo, dni, estado')
+                            .eq('dni', dni)
+                            .maybeSingle();
+
+                        if (error) throw error;
+
+                        if (!data) {
+                            campoNombre.value = '';
+                            campoNombre.placeholder = 'DNI no registrado';
+                            campoNombre.readOnly = true;
+                            campoNombre.style.background = '#fef2f2';
+                            campoNombre.style.color = '#b91c1c';
+                            dniVerificado = null;
+                            return;
+                        }
+
+                        if (data.estado === 'Cesado') {
+                            campoNombre.value = 'Usuario cesado';
+                            campoNombre.readOnly = true;
+                            campoNombre.style.background = '#fef2f2';
+                            campoNombre.style.color = '#b91c1c';
+                            dniVerificado = null;
+                            return;
+                        }
+
+                        campoNombre.value = data.nombre_completo;
+                        campoNombre.readOnly = true;
+                        campoNombre.style.background = '#f0fdfa';
+                        campoNombre.style.color = '#0f766e';
+                        campoNombre.placeholder = '';
+                        dniVerificado = dni;
+
+                    } catch (error) {
+                        console.error('Error al verificar DNI:', error);
+                        campoNombre.value = '';
+                        dniVerificado = null;
+                    }
+                });
+            });
+            document.querySelectorAll('input[name="tipo"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const tipo = e.target.value;
+                    grupoFecha.style.display = 'block';
+
+                    if (tipo === 'Planilla') {
+                        labelFecha.textContent = 'Mes que inició el contrato';
+                        fechaInput.type = 'month';
+                    } else {
+                        labelFecha.textContent = 'Fecha de inicio del contrato';
+                        fechaInput.type = 'date';
+                    }
+                    fechaInput.value = '';
+                });
+            });
+            fileDrop.addEventListener('click', (e) => {
+                if (e.target === fileInput) return;
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) {
+                    mostrarArchivo(fileInput.files[0]);
+                }
+            });
+
+            ['dragenter', 'dragover'].forEach(ev => {
+                fileDrop.addEventListener(ev, (e) => {
+                    e.preventDefault();
+                    fileDrop.classList.add('drag-over');
+                });
+            });
+            ['dragleave', 'drop'].forEach(ev => {
+                fileDrop.addEventListener(ev, (e) => {
+                    e.preventDefault();
+                    fileDrop.classList.remove('drag-over');
+                });
+            });
+            fileDrop.addEventListener('drop', (e) => {
+                if (e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    mostrarArchivo(e.dataTransfer.files[0]);
+                }
+            });
+
+            function mostrarArchivo(archivo) {
+                const peso = (archivo.size / 1048576).toFixed(2);
+                fileName.textContent = `✓ ${archivo.name} (${peso} MB)`;
+                fileName.classList.add('visible');
+            }
+            function validarArchivo(archivo) {
+                const extensiones = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
+                const ext = archivo.name.split('.').pop().toLowerCase();
+                if (!extensiones.includes(ext)) return 'Formato no permitido. Usa: PDF, DOC, DOCX, JPG o PNG.';
+                if (archivo.size > 10 * 1024 * 1024) return 'El archivo no puede superar los 10 MB.';
+                return '';
+            }
+
+            function mostrarError(msg) {
+                alertError.textContent = msg;
+                alertError.classList.add('visible');
+                setTimeout(() => alertError.classList.remove('visible'), 5000);
+            }
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const nombre = document.getElementById('nombre').value.trim();
+                const dni = document.getElementById('dni').value.trim();
+                const tipo = document.querySelector('input[name="tipo"]:checked')?.value;
+                const fechaValor = fechaInput.value;
+
+                if (!/^\d{8}$/.test(dni)) return mostrarError('El DNI debe tener 8 dígitos.');
+                if (!dniVerificado) return mostrarError('Tu DNI no está registrado en SIMECAR. Contacta a RRHH para registrarte primero.');
+                if (!nombre) return mostrarError('No se pudo obtener tu nombre. Vuelve a intentar.');
+                if (!tipo) return mostrarError('Selecciona el tipo de recibo.');
+                if (!fechaValor) return mostrarError(tipo === 'Planilla' ? 'Selecciona el mes de inicio.' : 'Selecciona la fecha de inicio.');
+                if (!fileInput.files.length) return mostrarError('Debes subir el archivo del contrato.');
+
+                const archivo = fileInput.files[0];
+                const errorArchivo = validarArchivo(archivo);
+                if (errorArchivo) return mostrarError(errorArchivo);
+
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<span class="spinner"></span> Subiendo archivo...';
+
+                try {
+                    const extension = archivo.name.split('.').pop().toLowerCase();
+                    const nombreArchivo = `contrato_${dni}_${Date.now()}.${extension}`;
+                    const uploadUrl = `${WORKER_URL}/${nombreArchivo}`;
+
+                    const urlArchivo = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', uploadUrl, true);
+        xhr.setRequestHeader('Content-Type', archivo.type || 'application/octet-stream');
+        xhr.setRequestHeader('X-Kardex-Key', CLOUDFLARE_KEY); 
+
+        xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                try { resolve(JSON.parse(xhr.responseText).url); }
+                catch (err) { reject(new Error('Respuesta inválida del servidor.')); }
+            } else {
+                reject(new Error(`Error al subir el archivo (${xhr.status})`));
+            }
+        };
+        xhr.onerror = () => reject(new Error('Error de red al subir el archivo.'));
+        xhr.send(archivo);
+    });;
+
+                    btnSubmit.innerHTML = '<span class="spinner"></span> Guardando datos...';
+
+                    const mesInicio = tipo === 'Planilla' ? fechaValor : null;
+                    const fechaInicio = tipo === 'Recibo por Honorarios' ? fechaValor : null;
+
+                    const { error } = await db.from('contratos_recibidos').insert([{
+                        nombre_completo: nombre,
+                        dni: dni,
+                        tipo_recibo: tipo,
+                        mes_inicio: mesInicio,
+                        fecha_inicio: fechaInicio,
+                        url_archivo: urlArchivo,
+                        origen: 'publico'
+                    }]);
+
+                    if (error) throw error;
+
+                    const ahora = new Date();
+                    document.getElementById('fecha-envio').textContent =
+                        `Enviado el ${ahora.toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })} a las ${ahora.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`;
+
+                    formContainer.style.display = 'none';
+                    successScreen.classList.add('visible');
+
+                } catch (error) {
+                    console.error(error);
+                    mostrarError('Error: ' + error.message);
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar a SIMECAR';
+                }
+            });
+            window.resetForm = function() {
+                form.reset();
+                fileInput.value = '';
+                fileName.classList.remove('visible');
+                fileName.textContent = '';
+                grupoFecha.style.display = 'none';
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar a SIMECAR';
+                successScreen.classList.remove('visible');
+                formContainer.style.display = 'block';
+                if (usuarioSesion) {
+                    document.getElementById('nombre').value = usuarioSesion.nombre_completo || '';
+                    document.getElementById('dni').value = usuarioSesion.dni || '';
+                    dniVerificado = usuarioSesion.dni;
+                } else {
+                    campoNombre.readOnly = false;
+                    campoNombre.value = '';
+                    campoNombre.style.background = '';
+                    campoNombre.style.color = '';
+                    campoNombre.placeholder = 'Ej. Valdiviezo Elias, Angel';
+                    dniVerificado = null;
+                }
+            };
+        </script>
+    </body>
+    </html>

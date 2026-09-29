@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal del Trabajador - SIMECAR S.A.C.</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://galywfaztkjiybvopurq.supabase.co https://kardex-apis.angelve581.workers.dev; img-src 'self' data:;">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; color: #1f2937; position: relative; overflow-x: hidden; }
+
+        body::before { content: ''; position: fixed; top: -30%; right: -20%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: 0; }
+        body::after { content: ''; position: fixed; bottom: -30%; left: -20%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(13, 148, 136, 0.12) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: 0; }
+
+        .container { max-width: 720px; margin: 0 auto; padding: 40px 20px 60px; position: relative; z-index: 1; }
+
+        /* ==== PANTALLA DE LOGIN ==== */
+        .login-screen { display: none; }
+        .login-screen.active { display: block; }
+
+        .login-card { background: white; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.35); overflow: hidden; max-width: 480px; margin: 0 auto; }
+
+        .login-header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 40px 24px 32px; text-align: center; color: white; }
+        .login-header img { max-width: 200px; height: auto; margin-bottom: 20px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3)); background: white; padding: 8px 14px; border-radius: 10px; }
+        .login-header h1 { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+        .login-header p { font-size: 14px; color: #94a3b8; }
+
+        .login-body { padding: 32px 24px; }
+
+        .login-info { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px 14px; margin-bottom: 24px; display: flex; gap: 10px; align-items: start; }
+        .login-info i { color: #0284c7; font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+        .login-info p { font-size: 12px; color: #1e40af; line-height: 1.5; }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px; }
+        .input-group input { width: 100%; padding: 16px 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 18px; font-family: inherit; font-weight: 600; text-align: center; letter-spacing: 4px; transition: all 0.2s; }
+        .input-group input:focus { outline: none; border-color: #0f766e; box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12); }
+        .input-group input::placeholder { letter-spacing: 2px; font-weight: 400; color: #cbd5e1; }
+
+        .btn-login { width: 100%; padding: 16px; background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(15, 118, 110, 0.3); }
+        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .login-footer { text-align: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f3f4f6; }
+        .login-footer p { font-size: 13px; color: #6b7280; }
+        .login-footer a { color: #0f766e; font-weight: 600; text-decoration: none; cursor: pointer; }
+        .login-footer a:hover { text-decoration: underline; }
+
+        .login-error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+        .login-error.visible { display: block; }
+
+        /* ==== DASHBOARD (después del login) ==== */
+        .dashboard { display: none; }
+        .dashboard.active { display: block; }
+
+        /* HEADER */
+        .header { text-align: center; margin-bottom: 32px; animation: fadeInDown 0.6s ease-out; }
+        .header img { max-width: 220px; height: auto; margin-bottom: 20px; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4)); background: white; padding: 10px 16px; border-radius: 12px; }
+        .header .greeting { font-size: 15px; color: #94a3b8; margin-bottom: 4px; }
+        .header h1 { font-size: 26px; font-weight: 800; color: white; margin-bottom: 4px; letter-spacing: -0.02em; }
+        .header .user-info { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 6px 14px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; font-size: 12px; color: #6ee7b7; font-weight: 600; }
+        .header .user-info .dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite; }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* SECCIÓN TÍTULO */
+        .section-title { font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; text-align: center; animation: fadeIn 0.8s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* GRID DE MÓDULOS */
+        .grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 32px; }
+        @media (min-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+        .card { background: white; border-radius: 16px; padding: 24px; text-decoration: none; color: inherit; display: flex; align-items: center; gap: 18px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; animation: slideUp 0.5s ease-out backwards; border: 2px solid transparent; }
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15); }
+        .card:active { transform: translateY(-2px) scale(0.99); }
+
+        .card::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 5px; background: currentColor; transition: width 0.3s ease; }
+        .card:hover::before { width: 8px; }
+
+        .card-icon { width: 60px; height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 26px; transition: transform 0.3s ease; }
+        .card:hover .card-icon { transform: scale(1.08) rotate(-3deg); }
+
+        .card-content { flex: 1; min-width: 0; }
+        .card-content h3 { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 4px; letter-spacing: -0.01em; }
+        .card-content p { font-size: 13px; color: #6b7280; line-height: 1.4; }
+
+        .card-arrow { color: #cbd5e1; font-size: 20px; transition: all 0.3s ease; flex-shrink: 0; }
+        .card:hover .card-arrow { color: #0f766e; transform: translateX(4px); }
+
+        .card.contratos { color: #0284c7; }
+        .card.contratos .card-icon { background: #e0f2fe; color: #0284c7; }
+
+        .card.mural { color: #f59e0b; }
+        .card.mural .card-icon { background: #fef3c7; color: #d97706; }
+
+        .card.informes { color: #0f766e; }
+        .card.informes .card-icon { background: #ccfbf1; color: #0f766e; }
+
+        .card.historial { color: #7c3aed; }
+        .card.historial .card-icon { background: #ede9fe; color: #7c3aed; }
+
+        /* CERRAR SESIÓN */
+        .btn-logout { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; max-width: 300px; margin: 0 auto; padding: 14px; background: transparent; border: 2px solid rgba(239, 68, 68, 0.4); border-radius: 12px; color: #fca5a5; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .btn-logout:hover { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; color: #fca5a5; }
+
+        /* FOOTER */
+        .footer { text-align: center; margin-top: 40px; padding-top: 24px; border-top: 1px solid rgba(148, 163, 184, 0.15); }
+        .footer p { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+        .footer .version { font-size: 11px; color: #475569; font-weight: 500; }
+        .footer .heart { color: #dc2626; margin: 0 4px; }
+
+        .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 480px) {
+            .container { padding: 24px 16px 40px; }
+            .header h1 { font-size: 22px; }
+            .header img { max-width: 180px; }
+            .card { padding: 18px; gap: 14px; }
+            .card-icon { width: 50px; height: 50px; font-size: 22px; }
+            .card-content h3 { font-size: 15px; }
+            .card-content p { font-size: 12px; }
+            .login-body { padding: 24px 20px; }
+            .login-header { padding: 32px 20px 26px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- PANTALLA DE LOGIN -->
+        <div id="screen-login" class="login-screen active">
+            <div class="login-card">
+                <div class="login-header">
+                    <img src="fondo.png" alt="SIMECAR S.A.C.">
+                    <h1>Portal del Trabajador</h1>
+                    <p>Ingresa con tu DNI</p>
+                </div>
+                <div class="login-body">
+                    <div class="login-info">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <p>Este portal es <strong>exclusivo para personal de SIMECAR</strong>. Ingresa tu DNI para acceder a tus documentos.</p>
+                    </div>
+
+                    <div id="login-error" class="login-error"></div>
+
+                    <form id="form-login">
+                        <div class="input-group">
+                            <label>Ingresa tu DNI</label>
+                            <input type="text" id="login-dni" required maxlength="8" placeholder="12345678" pattern="\d{8}" autocomplete="off">
+                        </div>
+
+                        <button type="submit" id="btn-login" class="btn-login">
+                            <i class="fa-solid fa-right-to-bracket"></i> Ingresar
+                        </button>
+                    </form>
+
+                    <div class="login-footer">
+                        <p>¿No estás registrado? <a onclick="alert('Contacta a RRHH de SIMECAR para que te envíen el link de registro.')">Solicita acceso</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD (después del login) -->
+        <div id="screen-dashboard" class="dashboard">
+            <div class="header">
+                <img src="fondo.png" alt="SIMECAR S.A.C.">
+                <p class="greeting">¡Hola de nuevo!</p>
+                <h1 id="user-name">Usuario</h1>
+                <div class="user-info">
+                    <span class="dot"></span>
+                    <span id="user-dni">DNI: -</span>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <i class="fa-solid fa-th-large"></i> Módulos disponibles
+            </div>
+
+            <div class="grid">
+
+                <a href="Contratos.html" class="card contratos">
+                    <div class="card-icon"><i class="fa-solid fa-file-signature"></i></div>
+                    <div class="card-content">
+                        <h3>Subir mi Contrato</h3>
+                        <p>Envía tu contrato firmado</p>
+                    </div>
+                    <div class="card-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                </a>
+
+                <a href="mural.html" class="card mural">
+                    <div class="card-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                    <div class="card-content">
+                        <h3>Mural de Avisos</h3>
+                        <p>Infografías y comunicados</p>
+                    </div>
+                    <div class="card-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                </a>
+
+                <a href="Informes.html" class="card informes">
+                    <div class="card-icon"><i class="fa-solid fa-file-lines"></i></div>
+                    <div class="card-content">
+                        <h3>Informes de Entregables</h3>
+                        <p>Sube tus informes mensuales</p>
+                    </div>
+                    <div class="card-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                </a>
+
+                <a href="Historial.html" class="card historial">
+                    <div class="card-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div class="card-content">
+                        <h3>Mi Historial</h3>
+                        <p>Consulta todo lo que has enviado</p>
+                    </div>
+                    <div class="card-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                </a>
+
+            </div>
+
+            <button class="btn-logout" onclick="cerrarSesion()">
+                <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        window.addEventListener('DOMContentLoaded', () => {
+            const sesion = sessionStorage.getItem('portalSesion');
+            if (sesion) {
+                try {
+                    const datos = JSON.parse(sesion);
+                    mostrarDashboard(datos);
+                } catch (e) {
+                    sessionStorage.removeItem('portalSesion');
+                }
+            }
+        });
+
+        function irA(screenId) {
+            document.querySelectorAll('.login-screen, .dashboard').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function mostrarError(msg) {
+            const el = document.getElementById('login-error');
+            el.textContent = msg;
+            el.classList.add('visible');
+            setTimeout(() => el.classList.remove('visible'), 6000);
+        }
+
+        function mostrarDashboard(usuario) {
+            document.getElementById('user-name').textContent = usuario.nombre_completo;
+            document.getElementById('user-dni').textContent = `DNI: ${usuario.dni}`;
+            irA('screen-dashboard');
+        }
+
+        function cerrarSesion() {
+            if (!confirm('¿Cerrar sesión? Tendrás que ingresar tu DNI de nuevo.')) return;
+            sessionStorage.removeItem('portalSesion');
+            document.getElementById('form-login').reset();
+            irA('screen-login');
+        }
+
+document.getElementById('form-login').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const btn = document.getElementById('btn-login');
+    const dni = document.getElementById('login-dni').value.trim();
+
+    if (!/^\d{8}$/.test(dni)) {
+        return mostrarError('El DNI debe tener exactamente 8 dígitos.');
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Verificando...';
+
+    try {
+        const respuesta = await fetch('https://kardex-apis.angelve581.workers.dev/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Kardex-Key': CLOUDFLARE_KEY
+            },
+            body: JSON.stringify({ dni: dni })
+        });
+
+        if (!respuesta.ok) {
+            throw new Error(`Error ${respuesta.status}: ${respuesta.statusText}`);
+        }
+
+        const json = await respuesta.json();
+        const data = json.data ?? json;
+
+        if (!data) {
+            mostrarError('DNI no registrado. Contacta a RRHH para solicitar acceso al Portal.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Ingresar';
+            return;
+        }
+
+        if (data.estado === 'Cesado') {
+            mostrarError('Tu cuenta ha sido desactivada. Contacta a RRHH para más información.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Ingresar';
+            return;
+        }
+
+        // Guardar sesión
+        const usuario = {
+            id: data.id,
+            nombre_completo: data.nombre_completo,
+            dni: data.dni,
+            correo_isdp: data.correo_isdp,
+            correo_personal: data.correo_personal,
+            celular: data.celular
+        };
+        sessionStorage.setItem('portalSesion', JSON.stringify(usuario));
+
+        // Mostrar dashboard
+        mostrarDashboard(usuario);
+
+    } catch (error) {
+        console.error(error);
+        mostrarError('Error al verificar: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Ingresar';
+    }
+});
+    </script>
+</body>
+</html>

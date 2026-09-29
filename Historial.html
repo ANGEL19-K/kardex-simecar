@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Historial - SIMECAR S.A.C.</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://galywfaztkjiybvopurq.supabase.co https://kardex-apis.angelve581.workers.dev; img-src 'self' data: https://pub-f67958c517bd467b837caa86c2619380.r2.dev https://kardex-apis.angelve581.workers.dev;">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; color: #1f2937; padding: 20px; }
+
+        .container { max-width: 720px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 24px; }
+        .header img { max-width: 180px; height: auto; margin-bottom: 16px; background: white; padding: 8px 14px; border-radius: 10px; }
+        .header h1 { font-size: 24px; font-weight: 800; color: white; margin-bottom: 4px; }
+        .header p { font-size: 14px; color: #94a3b8; }
+        .btn-back { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 20px; color: #cbd5e1; font-size: 13px; font-weight: 600; text-decoration: none; margin-bottom: 24px; transition: all 0.2s; }
+        .btn-back:hover { background: rgba(148, 163, 184, 0.25); color: white; transform: translateX(-3px); }
+        .user-card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+        .user-icon { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px; color: white; }
+        .user-card h2 { font-size: 20px; font-weight: 800; color: #111827; margin-bottom: 4px; }
+        .user-card .dni { font-size: 14px; color: #6b7280; margin-bottom: 16px; }
+        .resumen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+        .resumen-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; }
+        .resumen-item .num { font-size: 24px; font-weight: 800; color: #0f766e; }
+        .resumen-item .lbl { font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+        .section { margin-bottom: 28px; }
+        .section-title { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; padding-left: 4px; }
+        .section-title .icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+        .section-title.contratos .icon { background: rgba(2, 132, 199, 0.2); color: #38bdf8; }
+        .section-title.informes .icon { background: rgba(15, 118, 110, 0.2); color: #5eead4; }
+        .doc-card { background: white; border-radius: 14px; padding: 20px; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-left: 5px solid #0f766e; transition: all 0.2s; }
+        .doc-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+        .doc-card.aprobado { border-left-color: #10b981; }
+        .doc-card.devuelto { border-left-color: #f59e0b; }
+        .doc-card.pendiente { border-left-color: #94a3b8; }
+        .doc-card.revisado { border-left-color: #0284c7; }
+        .doc-head { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; gap: 12px; }
+        .doc-titulo { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+        .doc-fecha { font-size: 12px; color: #9ca3af; }
+        .doc-estado { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+        .doc-estado.aprobado { background: #d1fae5; color: #065f46; }
+        .doc-estado.devuelto { background: #fef3c7; color: #92400e; }
+        .doc-estado.pendiente { background: #f1f5f9; color: #475569; }
+        .doc-estado.revisado { background: #dbeafe; color: #1e40af; }
+        .doc-info { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; font-size: 13px; color: #4b5563; }
+        .doc-info span { display: inline-flex; align-items: center; gap: 6px; }
+        .doc-info i { color: #9ca3af; font-size: 12px; }
+        .motivo-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 14px; margin-top: 12px; }
+        .motivo-box .titulo { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #92400e; text-transform: uppercase; margin-bottom: 6px; }
+        .motivo-box .texto { font-size: 13px; color: #78350f; line-height: 1.5; }
+        .doc-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+        .btn-accion { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; border: none; font-family: inherit; transition: all 0.2s; }
+        .btn-accion.primary { background: #0f766e; color: white; }
+        .btn-accion.primary:hover { background: #115e59; }
+        .btn-accion.warning { background: #f59e0b; color: white; }
+        .btn-accion.warning:hover { background: #d97706; }
+        .btn-accion.outline { background: white; border: 1.5px solid #e5e7eb; color: #4b5563; }
+        .btn-accion.outline:hover { background: #f8fafc; border-color: #d1d5db; }
+        .vacio { background: white; border-radius: 14px; padding: 40px 20px; text-align: center; color: #9ca3af; }
+        .vacio i { font-size: 42px; color: #e5e7eb; margin-bottom: 12px; display: block; }
+        .vacio p { font-size: 14px; }
+        .loading { text-align: center; padding: 40px; color: #94a3b8; }
+        .loading i { font-size: 32px; color: #5eead4; margin-bottom: 12px; display: block; }
+
+        @media (max-width: 480px) {
+            .container { padding: 0; }
+            .user-card { padding: 20px; }
+            .resumen { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .resumen-item { padding: 10px 8px; }
+            .resumen-item .num { font-size: 20px; }
+            .resumen-item .lbl { font-size: 10px; }
+            .doc-card { padding: 16px; }
+            .doc-head { flex-direction: column; align-items: start; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <div style="text-align: center;">
+            <a href="Portal.html" class="btn-back">
+                <i class="fa-solid fa-arrow-left"></i> Volver al Portal
+            </a>
+        </div>
+
+        <div class="header">
+            <img src="fondo.png" alt="SIMECAR S.A.C.">
+            <h1>Mi Historial</h1>
+            <p>Todo lo que has enviado a SIMECAR</p>
+        </div>
+
+        <!-- CARD DE USUARIO -->
+        <div class="user-card">
+            <div class="user-icon">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <h2 id="user-nombre">Cargando...</h2>
+            <p class="dni" id="user-dni">DNI: -</p>
+            <div class="resumen">
+                <div class="resumen-item">
+                    <div class="num" id="total-docs">0</div>
+                    <div class="lbl">Total</div>
+                </div>
+                <div class="resumen-item">
+                    <div class="num" id="total-aprobados" style="color: #10b981;">0</div>
+                    <div class="lbl">Aprobados</div>
+                </div>
+                <div class="resumen-item">
+                    <div class="num" id="total-devueltos" style="color: #f59e0b;">0</div>
+                    <div class="lbl">Devueltos</div>
+                </div>
+            </div>
+        </div>
+        <div id="contenido">
+            <div class="loading">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                Cargando tu historial...
+            </div>
+        </div>
+
+    </div>
+    <script>
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const configuracionEstados = {
+            'Pendiente': { clase: 'pendiente', icono: 'fa-clock', texto: 'Pendiente' },
+            'Revisado': { clase: 'revisado', icono: 'fa-eye', texto: 'Revisado' },
+            'Aprobado': { clase: 'aprobado', icono: 'fa-check-circle', texto: 'Aprobado' },
+            'Devuelto': { clase: 'devuelto', icono: 'fa-triangle-exclamation', texto: 'Devuelto' },
+            'Rechazado': { clase: 'devuelto', icono: 'fa-times-circle', texto: 'Rechazado' }
+        };
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const sesionStr = sessionStorage.getItem('portalSesion');
+            if (!sesionStr) {
+                window.location.href = 'Portal.html';
+                return;
+            }
+
+            let usuario;
+            try {
+                usuario = JSON.parse(sesionStr);
+            } catch (e) {
+                window.location.href = 'Portal.html';
+                return;
+            }
+
+            document.getElementById('user-nombre').textContent = usuario.nombre_completo;
+            document.getElementById('user-dni').textContent = `DNI: ${usuario.dni}`;
+
+            await cargarHistorial(usuario.dni);
+        });
+
+async function cargarHistorial(dni) {
+    const contenedor = document.getElementById('contenido');
+
+    try {
+        const respuesta = await fetch('https://kardex-apis.angelve581.workers.dev/historial', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Kardex-Key': CLOUDFLARE_KEY   
+            },
+            body: JSON.stringify({ dni: dni })
+        });
+
+        if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
+
+        const data = await respuesta.json();
+
+        const contratos = data.contratos || [];
+        const informes = data.informes || [];
+
+        const total = contratos.length + informes.length;
+        const aprobados = [...contratos, ...informes].filter(d => d.estado === 'Aprobado').length;
+        const devueltos = [...contratos, ...informes].filter(d => d.estado === 'Devuelto' || d.estado === 'Rechazado').length;
+
+        document.getElementById('total-docs').textContent = total;
+        document.getElementById('total-aprobados').textContent = aprobados;
+        document.getElementById('total-devueltos').textContent = devueltos;
+
+        let html = '';
+
+        html += `
+            <div class="section">
+                <div class="section-title contratos">
+                    <span class="icon"><i class="fa-solid fa-file-signature"></i></span>
+                    Contratos enviados (${contratos.length})
+                </div>
+        `;
+
+        if (contratos.length === 0) {
+            html += `
+                <div class="vacio">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <p>Aún no has enviado ningún contrato.</p>
+                </div>
+            `;
+        } else {
+            contratos.forEach(c => {
+                html += renderDocCard(c, 'contrato');
+            });
+        }
+        html += `</div>`;
+        html += `
+            <div class="section">
+                <div class="section-title informes">
+                    <span class="icon"><i class="fa-solid fa-file-lines"></i></span>
+                    Informes enviados (${informes.length})
+                </div>
+        `;
+
+        if (informes.length === 0) {
+            html += `
+                <div class="vacio">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <p>Aún no has enviado ningún informe.</p>
+                </div>
+            `;
+        } else {
+            informes.forEach(i => {
+                html += renderDocCard(i, 'informe');
+            });
+        }
+        html += `</div>`;
+
+        contenedor.innerHTML = html;
+
+    } catch (error) {
+        console.error(error);
+        contenedor.innerHTML = `
+            <div class="vacio">
+                <i class="fa-solid fa-exclamation-triangle" style="color: #ef4444;"></i>
+                <p>Error al cargar tu historial.</p>
+                <p style="font-size: 12px; margin-top: 8px; color: #cbd5e1;">${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+        function renderDocCard(doc, tipo) {
+            const estadoActual = doc.estado || 'Pendiente';
+            const estadoInfo = configuracionEstados[estadoActual] || configuracionEstados['Pendiente'];
+            const cardClase = estadoInfo.clase;
+
+            const fechaEnvio = new Date(doc.fecha_envio);
+            const fechaTexto = fechaEnvio.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            let titulo = '';
+            let periodoHtml = '';
+
+            if (tipo === 'contrato') {
+                const tipoContrato = doc.tipo_recibo === 'Planilla' ? 'Contrato Planilla' : 'Contrato Honorarios';
+                titulo = tipoContrato;
+                let periodoTexto = 'N/A';
+                if (doc.tipo_recibo === 'Planilla' && doc.mes_inicio) {
+                    const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+                    const [year, month] = doc.mes_inicio.split('-');
+                    periodoTexto = `${meses[parseInt(month)-1]} ${year}`;
+                } else if (doc.fecha_inicio) {
+                    const [y, m, d] = doc.fecha_inicio.split('-');
+                    periodoTexto = `${d}/${m}/${y}`;
+                }
+                periodoHtml = `<span><i class="fa-solid fa-calendar"></i> Periodo: ${periodoTexto}</span>`;
+            } else {
+                titulo = 'Informe de Entregables';
+                const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+                let periodoTexto = doc.periodo;
+                if (doc.periodo && doc.periodo.includes('-')) {
+                    const [year, month] = doc.periodo.split('-');
+                    periodoTexto = `${meses[parseInt(month)-1]} ${year}`;
+                }
+                periodoHtml = `<span><i class="fa-solid fa-calendar"></i> Periodo: ${periodoTexto}</span>`;
+            }
+            let motivoHtml = '';
+            if ((estadoActual === 'Devuelto' || estadoActual === 'Rechazado') && doc.motivo_devolucion) {
+                motivoHtml = `
+                    <div class="motivo-box">
+                        <div class="titulo"><i class="fa-solid fa-circle-exclamation"></i> Motivo de la devolución</div>
+                        <div class="texto">${doc.motivo_devolucion}</div>
+                    </div>
+                `;
+            }
+
+            let accionesHtml = '';
+            const urlArchivo = doc.url_archivo;
+
+            if (estadoActual === 'Devuelto' || estadoActual === 'Rechazado') {
+                const linkCorrect = tipo === 'contrato' ? 'Contratos.html' : 'Informes.html';
+                accionesHtml = `
+                    <div class="doc-actions">
+                        <a href="${urlArchivo}" target="_blank" class="btn-accion outline">
+                            <i class="fa-solid fa-eye"></i> Ver archivo
+                        </a>
+                        <a href="${linkCorrect}" class="btn-accion warning">
+                            <i class="fa-solid fa-rotate"></i> Subir corrección
+                        </a>
+                    </div>
+                `;
+            } else {
+                accionesHtml = `
+                    <div class="doc-actions">
+                        <a href="${urlArchivo}" target="_blank" class="btn-accion outline">
+                            <i class="fa-solid fa-eye"></i> Ver archivo
+                        </a>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="doc-card ${cardClase}">
+                    <div class="doc-head">
+                        <div>
+                            <div class="doc-titulo">📄 ${titulo}</div>
+                            <div class="doc-fecha">Enviado: ${fechaTexto}</div>
+                        </div>
+                        <span class="doc-estado ${estadoInfo.clase}">
+                            <i class="fa-solid ${estadoInfo.icono}"></i> ${estadoInfo.texto}
+                        </span>
+                    </div>
+                    <div class="doc-info">
+                        ${periodoHtml}
+                    </div>
+                    ${motivoHtml}
+                    ${accionesHtml}
+                </div>
+            `;
+        }
+
+    </script>
+</body>
+</html>

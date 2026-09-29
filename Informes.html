@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informes de Entregables - SIMECAR S.A.C.</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://galywfaztkjiybvopurq.supabase.co https://kardex-apis.angelve581.workers.dev; img-src 'self' data:;">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; color: #1f2937; }
+        .container { width: 100%; max-width: 520px; background: white; border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.35); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 32px 24px 28px; text-align: center; color: white; }
+        .header img { max-width: 200px; height: auto; margin-bottom: 12px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3)); }
+        .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+        .header p { font-size: 13px; color: #94a3b8; }
+        .body-content { padding: 28px 24px; }
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .menu-option { display: flex; align-items: center; gap: 14px; padding: 20px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; text-decoration: none; color: inherit; }
+        .menu-option:hover { border-color: #0f766e; background: #f0fdfa; transform: translateY(-2px); }
+        .menu-option .icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+        .menu-option .icon.teal { background: #ccfbf1; color: #0f766e; }
+        .menu-option .icon.sky { background: #e0f2fe; color: #0284c7; }
+        .menu-option .text h3 { font-size: 15px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+        .menu-option .text p { font-size: 12px; color: #6b7280; }
+
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+        .input-group input, .input-group select { width: 100%; padding: 12px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-family: inherit; transition: all 0.2s; }
+        .input-group input:focus { outline: none; border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12); }
+
+        .file-drop { display: block; border: 2px dashed #cbd5e1; background: #f8fafc; border-radius: 10px; padding: 24px 16px; text-align: center; transition: all 0.2s; cursor: pointer; }
+        .file-drop:hover, .file-drop.drag-over { border-color: #0f766e; background: #f0fdfa; }
+        .file-drop i { font-size: 28px; color: #94a3b8; margin-bottom: 8px; display: block; }
+        .file-drop p { font-size: 13px; color: #6b7280; }
+        .file-drop .file-link { color: #0f766e; font-weight: 600; text-decoration: underline; }
+        .file-drop .file-name { margin-top: 12px; font-size: 12px; color: #0f766e; font-weight: 600; display: none; }
+        .file-drop .file-name.visible { display: block; }
+        .file-drop input[type="file"] { display: none; }
+
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(15, 118, 110, 0.3); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: white; border: 2px solid #cbd5e1; color: #475569; }
+        .btn-secondary:hover { background: #f8fafc; }
+
+        .btn-back { display: inline-flex; align-items: center; gap: 6px; color: #6b7280; font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px 0; margin-bottom: 12px; }
+        .btn-back:hover { color: #0f766e; }
+
+        .success-icon { width: 90px; height: 90px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; animation: bounceIn 0.5s ease-out; }
+        .success-icon i { font-size: 42px; color: white; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 60% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .success-title { font-size: 24px; font-weight: 800; color: #111827; margin-bottom: 10px; text-align: center; }
+        .success-text { font-size: 14px; color: #6b7280; line-height: 1.6; margin-bottom: 8px; text-align: center; }
+        .success-fecha { font-size: 12px; color: #9ca3af; margin-top: 20px; padding: 10px; background: #f9fafb; border-radius: 8px; display: inline-block; }
+
+        .informe-card { background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #0f766e; }
+        .informe-card.aprobado { border-left-color: #10b981; }
+        .informe-card.devuelto { border-left-color: #f59e0b; }
+        .informe-card.pendiente { border-left-color: #94a3b8; }
+        .informe-card .head { display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px; gap: 10px; }
+        .informe-card .periodo { font-size: 15px; font-weight: 700; color: #111827; }
+        .informe-card .fecha { font-size: 12px; color: #9ca3af; }
+        .informe-card .estado { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .estado-aprobado { background: #d1fae5; color: #065f46; }
+        .estado-devuelto { background: #fef3c7; color: #92400e; }
+        .estado-pendiente { background: #f1f5f9; color: #475569; }
+        .estado-revisado { background: #dbeafe; color: #1e40af; }
+        .informe-card .motivo { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 10px; margin-top: 8px; font-size: 13px; color: #78350f; }
+        .informe-card .motivo strong { color: #92400e; display: block; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; }
+        .informe-card .btn-correct { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 8px 14px; background: #f59e0b; color: white; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none; cursor: pointer; }
+
+        .vacio { text-align: center; padding: 40px 20px; color: #9ca3af; }
+        .vacio i { font-size: 48px; color: #cbd5e1; margin-bottom: 12px; display: block; }
+        .error-msg { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+        .error-msg.visible { display: block; }
+
+        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 480px) { .header { padding: 24px 18px 22px; } .body-content { padding: 22px 18px; } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <img src="fondo.png" alt="SIMECAR S.A.C.">
+            <h1>Informes de Entregables</h1>
+            <p>Sistema de Gestión Documental</p>
+        </div>
+
+        <div class="body-content">
+            <!-- PANTALLA 1: MENÚ PRINCIPAL -->
+            <div id="screen-menu" class="screen active">
+                <a class="menu-option" onclick="irA('screen-subir')">
+                    <div class="icon teal"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                    <div class="text">
+                        <h3>Subir nuevo informe</h3>
+                        <p>Envía tu informe mensual de entregables</p>
+                    </div>
+                </a>
+                <a class="menu-option" onclick="irA('screen-consultar')">
+                    <div class="icon sky"><i class="fa-solid fa-magnifying-glass"></i></div>
+                    <div class="text">
+                        <h3>Consultar mis informes</h3>
+                        <p>Revisa el estado de tus informes enviados</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- PANTALLA 2: SUBIR INFORME -->
+            <div id="screen-subir" class="screen">
+                <div class="btn-back" onclick="volverAlMenu()"><i class="fa-solid fa-arrow-left"></i> Volver</div>
+                <div id="subir-error" class="error-msg"></div>
+                <form id="form-informe">
+                    <div class="input-group">
+                        <label>Apellido y Nombre *</label>
+                        <input type="text" id="informe-nombre" required placeholder="Ej. Valdiviezo Elías Angel">
+                    </div>
+                    <div class="input-group">
+                        <label>DNI *</label>
+                        <input type="text" id="informe-dni" required maxlength="8" placeholder="8 dígitos" pattern="\d{8}">
+                    </div>
+                    <div class="input-group">
+                        <label>Periodo que informa *</label>
+                        <input type="month" id="informe-periodo" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Archivo del informe *</label>
+                        <div class="file-drop" id="informe-file-drop">
+                            <i class="fa-solid fa-file-arrow-up"></i>
+                            <p>
+                                <span class="file-link">Seleccionar archivo</span>
+                                <br><span style="font-size: 11px;">PDF, Word o Imagen (máx 10 MB)</span>
+                            </p>
+                            <p class="file-name" id="informe-file-name"></p>
+                            <input type="file" id="informe-file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                        </div>
+                    </div>
+                    <button type="submit" id="btn-subir-informe" class="btn btn-primary">
+                        <i class="fa-solid fa-paper-plane"></i> Enviar informe
+                    </button>
+                </form>
+            </div>
+
+            <!-- PANTALLA 3: ÉXITO -->
+            <div id="screen-exito" class="screen">
+                <div class="success-icon"><i class="fa-solid fa-check"></i></div>
+                <h2 class="success-title">¡Enviado con éxito!</h2>
+                <p class="success-text"><strong>Informe enviado a <span style="color: #0f766e;">SIMECAR S.A.C.</span></strong></p>
+                <p class="success-text">El área administrativa revisará tu documento.</p>
+                <div style="text-align: center;">
+                    <div class="success-fecha" id="exito-fecha"></div>
+                </div>
+                <br>
+                <button class="btn btn-secondary" onclick="volverAlMenu()">
+                    <i class="fa-solid fa-rotate"></i> Enviar otro
+                </button>
+            </div>
+
+            <!-- PANTALLA 4: CONSULTAR -->
+            <div id="screen-consultar" class="screen">
+                <div class="btn-back" onclick="volverAlMenu()"><i class="fa-solid fa-arrow-left"></i> Volver</div>
+                <div class="input-group">
+                    <label>Ingresa tu DNI</label>
+                    <input type="text" id="consultar-dni" maxlength="8" placeholder="8 dígitos" pattern="\d{8}">
+                </div>
+                <button onclick="consultarInformes()" id="btn-consultar" class="btn btn-primary">
+                    <i class="fa-solid fa-search"></i> Consultar informes
+                </button>
+                <div id="consultar-resultados" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WORKER_URL = 'https://kardex-apis.angelve581.workers.dev';
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let usuarioSesion = null;
+        let dniVerificado = null;
+
+        try {
+            const sesionStr = sessionStorage.getItem('portalSesion');
+            if (sesionStr) {
+                usuarioSesion = JSON.parse(sesionStr);
+            }
+        } catch (e) {
+            usuarioSesion = null;
+        }
+        const campoNombre = document.getElementById('informe-nombre');
+        const campoDni = document.getElementById('informe-dni');
+        const fileDrop = document.getElementById('informe-file-drop');
+        const fileInput = document.getElementById('informe-file-input');
+        const fileName = document.getElementById('informe-file-name');
+        window.addEventListener('DOMContentLoaded', () => {
+
+            if (usuarioSesion) {
+                campoNombre.value = usuarioSesion.nombre_completo || '';
+                campoNombre.readOnly = true;
+                campoNombre.style.background = '#f1f5f9';
+                campoNombre.style.cursor = 'not-allowed';
+                campoNombre.parentElement.querySelector('label').innerHTML +=
+                    ' <span style="color: #0f766e; font-weight: 600; font-size: 11px;">✓ (desde el Portal)</span>';
+
+                campoDni.value = usuarioSesion.dni || '';
+                campoDni.readOnly = true;
+                campoDni.style.background = '#f1f5f9';
+                campoDni.style.cursor = 'not-allowed';
+                campoDni.parentElement.querySelector('label').innerHTML +=
+                    ' <span style="color: #0f766e; font-weight: 600; font-size: 11px;">✓ (desde el Portal)</span>';
+
+                dniVerificado = usuarioSesion.dni;
+                return;
+            }
+
+            campoDni.addEventListener('input', async (e) => {
+                const dni = e.target.value.trim();
+
+                if (!/^\d{8}$/.test(dni)) {
+                    campoNombre.value = '';
+                    campoNombre.readOnly = false;
+                    campoNombre.style.background = '';
+                    campoNombre.style.color = '';
+                    campoNombre.placeholder = 'Ej. Valdiviezo Elías Angel';
+                    dniVerificado = null;
+                    return;
+                }
+
+                try {
+                    const { data, error } = await db
+                        .from('empleados')
+                        .select('nombre_completo, dni, estado')
+                        .eq('dni', dni)
+                        .maybeSingle();
+
+                    if (error) throw error;
+
+                    if (!data) {
+                        campoNombre.value = '';
+                        campoNombre.placeholder = 'DNI no registrado';
+                        campoNombre.readOnly = true;
+                        campoNombre.style.background = '#fef2f2';
+                        campoNombre.style.color = '#b91c1c';
+                        dniVerificado = null;
+                        return;
+                    }
+
+                    if (data.estado === 'Cesado') {
+                        campoNombre.value = 'Usuario cesado';
+                        campoNombre.readOnly = true;
+                        campoNombre.style.background = '#fef2f2';
+                        campoNombre.style.color = '#b91c1c';
+                        dniVerificado = null;
+                        return;
+                    }
+
+                    campoNombre.value = data.nombre_completo;
+                    campoNombre.readOnly = true;
+                    campoNombre.style.background = '#f0fdfa';
+                    campoNombre.style.color = '#0f766e';
+                    campoNombre.placeholder = '';
+                    dniVerificado = dni;
+
+                } catch (error) {
+                    console.error('Error al verificar DNI:', error);
+                    campoNombre.value = '';
+                    dniVerificado = null;
+                }
+            });
+        });
+
+        function irA(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function volverAlMenu() {
+            if (usuarioSesion) {
+                window.location.href = 'Portal.html';
+            } else {
+                irA('screen-menu');
+            }
+        }
+
+        function mostrarError(msg) {
+            const el = document.getElementById('subir-error');
+            el.textContent = msg;
+            el.classList.add('visible');
+            setTimeout(() => el.classList.remove('visible'), 5000);
+        }
+        fileDrop.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                const peso = (fileInput.files[0].size / 1048576).toFixed(2);
+                fileName.textContent = `✓ ${fileInput.files[0].name} (${peso} MB)`;
+                fileName.classList.add('visible');
+            }
+        });
+        document.getElementById('form-informe').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-subir-informe');
+            const nombre = document.getElementById('informe-nombre').value.trim();
+            const dni = document.getElementById('informe-dni').value.trim();
+            const periodo = document.getElementById('informe-periodo').value;
+
+            if (!/^\d{8}$/.test(dni)) return mostrarError('El DNI debe tener 8 dígitos.');
+            if (!dniVerificado) return mostrarError('Tu DNI no está registrado en SIMECAR. Contacta a RRHH para registrarte primero.');
+            if (!nombre) return mostrarError('No se pudo obtener tu nombre. Vuelve a intentar.');
+            if (!periodo) return mostrarError('Selecciona el periodo.');
+            if (!fileInput.files.length) return mostrarError('Debes subir el archivo.');
+
+            const archivo = fileInput.files[0];
+            if (archivo.size > 10 * 1024 * 1024) return mostrarError('El archivo no puede superar 10 MB.');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Subiendo archivo...';
+
+            try {
+                const extension = archivo.name.split('.').pop().toLowerCase();
+                const nombreArchivo = `informe_${dni}_${periodo}_${Date.now()}.${extension}`;
+                const uploadUrl = `${WORKER_URL}/${nombreArchivo}`;
+
+               const urlArchivo = await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', uploadUrl, true);
+    xhr.setRequestHeader('Content-Type', archivo.type || 'application/octet-stream');
+    xhr.setRequestHeader('X-Kardex-Key', CLOUDFLARE_KEY);
+    xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+            try { resolve(JSON.parse(xhr.responseText).url); }
+            catch (err) { reject(new Error('Respuesta inválida del servidor.')); }
+        } else {
+            reject(new Error(`Error al subir el archivo (${xhr.status})`));
+        }
+    };
+    xhr.onerror = () => reject(new Error('Error de red al subir el archivo.'));
+    xhr.send(archivo);
+});
+                btn.innerHTML = '<span class="spinner"></span> Guardando...';
+
+                const { error } = await db.from('informes_entregables').insert([{
+                    nombre_completo: nombre,
+                    dni: dni,
+                    periodo: periodo,
+                    url_archivo: urlArchivo,
+                    origen: 'publico'
+                }]);
+
+                if (error) throw error;
+
+                const ahora = new Date();
+                document.getElementById('exito-fecha').textContent =
+                    `Enviado el ${ahora.toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })} a las ${ahora.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`;
+
+                document.getElementById('form-informe').reset();
+                fileName.classList.remove('visible');
+                fileName.textContent = '';
+
+                if (usuarioSesion) {
+                    campoNombre.value = usuarioSesion.nombre_completo || '';
+                    campoDni.value = usuarioSesion.dni || '';
+                }
+
+                irA('screen-exito');
+
+            } catch (error) {
+                console.error(error);
+                mostrarError('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar informe';
+            }
+        });
+
+async function consultarInformes() {
+    const dni = document.getElementById('consultar-dni').value.trim();
+    const resultados = document.getElementById('consultar-resultados');
+    const btn = document.getElementById('btn-consultar');
+
+    if (!/^\d{8}$/.test(dni)) {
+        resultados.innerHTML = '<div class="error-msg visible">Ingresa un DNI válido de 8 dígitos.</div>';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Consultando...';
+    resultados.innerHTML = '<div class="vacio"><i class="fa-solid fa-spinner fa-spin"></i><p>Cargando...</p></div>';
+
+    try {
+        const respuesta = await fetch('https://kardex-apis.angelve581.workers.dev/consulta', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Kardex-Key': CLOUDFLARE_KEY
+            },
+            body: JSON.stringify({ dni: dni })
+        });
+
+        if (!respuesta.ok) {
+            throw new Error(`Error ${respuesta.status}: ${respuesta.statusText}`);
+        }
+
+        const json = await respuesta.json();
+        const data = Array.isArray(json) ? json : (json.data || []);
+
+        if (!data || data.length === 0) {
+            resultados.innerHTML = `
+                <div class="vacio">
+                    <i class="fa-solid fa-inbox"></i>
+                    <p>No tienes informes registrados.</p>
+                    <p style="font-size: 12px; margin-top: 8px;">Verifica tu DNI o sube un nuevo informe.</p>
+                </div>`;
+            return;
+        }
+
+        resultados.innerHTML = `<p style="font-size: 13px; color: #6b7280; margin-bottom: 12px;"><strong>${data.length}</strong> informe(s) encontrado(s):</p>`;
+
+        const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+        data.forEach(informe => {
+            let periodoTexto = informe.periodo;
+            if (informe.periodo && informe.periodo.includes('-')) {
+                const [year, month] = informe.periodo.split('-');
+                periodoTexto = `${meses[parseInt(month)-1]} ${year}`;
+            }
+
+            const fechaEnvio = new Date(informe.fecha_envio);
+            const fechaTexto = fechaEnvio.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            let estadoClase = 'estado-pendiente';
+            let estadoIcono = 'fa-clock';
+            let estadoTexto = 'Pendiente';
+            let cardClase = 'pendiente';
+
+            if (informe.estado === 'Aprobado') { estadoClase = 'estado-aprobado'; estadoIcono = 'fa-check-circle'; estadoTexto = 'Aprobado'; cardClase = 'aprobado'; }
+            else if (informe.estado === 'Devuelto') { estadoClase = 'estado-devuelto'; estadoIcono = 'fa-triangle-exclamation'; estadoTexto = 'Devuelto'; cardClase = 'devuelto'; }
+            else if (informe.estado === 'Revisado') { estadoClase = 'estado-revisado'; estadoIcono = 'fa-eye'; estadoTexto = 'Revisado'; }
+
+            const motivoHtml = informe.estado === 'Devuelto' && informe.motivo_devolucion
+                ? `<div class="motivo"><strong>⚠️ Motivo de devolución:</strong>${informe.motivo_devolucion}</div>
+                   <a onclick="irA('screen-subir')" class="btn-correct"><i class="fa-solid fa-rotate"></i> Subir corrección</a>`
+                : '';
+
+            resultados.innerHTML += `
+                <div class="informe-card ${cardClase}">
+                    <div class="head">
+                        <div>
+                            <div class="periodo">📄 ${periodoTexto}</div>
+                            <div class="fecha">Enviado: ${fechaTexto}</div>
+                        </div>
+                        <span class="estado ${estadoClase}">
+                            <i class="fa-solid ${estadoIcono}"></i> ${estadoTexto}
+                        </span>
+                    </div>
+                    ${motivoHtml}
+                </div>
+            `;
+        });
+
+    } catch (error) {
+        resultados.innerHTML = `<div class="error-msg visible">Error: ${error.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-search"></i> Consultar informes';
+    }
+}
+
+document.getElementById('consultar-dni').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); consultarInformes(); }
+});
+</script>
+</body>
+</html>
