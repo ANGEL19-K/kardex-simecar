@@ -1,4 +1,4 @@
-// version 2 - fix CLOUDFLARE_KEY_MURAL
+// v3
 export async function onRequest(context) {
     const configContent = `
 // config.js - Generado por Cloudflare Pages Functions
