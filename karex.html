@@ -999,13 +999,17 @@ html.dark [id^="modal-"] button.border {
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Notas</p>
                     <p id="ver-notas" class="text-xs text-slate-600 italic"></p>
                 </div>
+                <div id="ver-contrato-motivo-container" class="hidden">
+    <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wider mb-1">Motivo del rechazo</p>
+    <div class="bg-rose-50 border border-rose-200 rounded-md p-3 text-xs text-rose-800 italic" id="ver-contrato-motivo"></div>
+</div>
 
                 <div class="pt-3 border-t border-slate-200">
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Cambiar Estado</p>
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="cambiarEstadoContrato('Revisado')" class="estado-btn text-xs py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-100 font-medium">Revisado</button>
                         <button onclick="cambiarEstadoContrato('Aprobado')" class="estado-btn text-xs py-2 rounded-md border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium">Aprobado</button>
-                        <button onclick="cambiarEstadoContrato('Rechazado')" class="estado-btn text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
+                        <button onclick="abrirModalRechazar('contrato', contratoActualViendose.id)" class="estado-btn text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
                         <button onclick="cambiarEstadoContrato('Pendiente')" class="estado-btn text-xs py-2 rounded-md border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium">Pendiente</button>
                     </div>
                 </div>
@@ -1037,7 +1041,33 @@ html.dark [id^="modal-"] button.border {
         </div>
     </div>
 </div>
-
+<!-- MODAL: RECHAZAR CON MOTIVO -->
+<div id="modal-rechazar" class="fixed inset-0 z-[180] hidden items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-md rounded-lg bg-white shadow-2xl overflow-hidden">
+        <div class="bg-rose-50 border-b border-rose-200 px-6 py-4 flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full bg-rose-500 text-white flex items-center justify-center">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-slate-800 text-lg">Rechazar Documento</h3>
+                <p class="text-xs text-slate-600">Explica el motivo del rechazo para que el trabajador corrija</p>
+            </div>
+        </div>
+        <form id="form-rechazar" class="p-6 space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-2">Motivo del rechazo *</label>
+                <textarea id="motivo-rechazo" rows="4" required maxlength="500" placeholder="Ej. Monto incorrecto, periodo incorrecto, archivo ilegible..." class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-rose-500 focus:border-rose-500"></textarea>
+                <p class="text-xs text-slate-400 mt-1"><span id="contador-rechazo">0</span>/500 caracteres</p>
+            </div>
+            <div class="flex justify-end gap-3 pt-2 border-t border-slate-100">
+                <button type="button" onclick="cerrarModalRechazar()" class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancelar</button>
+                <button type="submit" id="btn-confirmar-rechazo" class="rounded-md bg-rose-500 hover:bg-rose-600 text-white px-5 py-2 text-sm font-medium shadow-sm">
+                    <i class="fa-solid fa-paper-plane mr-2"></i>Confirmar Rechazo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
             <!-- VISTA EDITADA: DECLARACIONES JURADAS (FALTAS)-->
             <div id="view-docs-ddjj" class="view-section hidden animate-fade-in">
                 <div class="mb-6">
@@ -1695,7 +1725,7 @@ html.dark [id^="modal-"] button.border {
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="cambiarEstadoRecibo('Revisado')" class="text-xs py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-100 font-medium">Revisado</button>
                         <button onclick="cambiarEstadoRecibo('Aprobado')" class="text-xs py-2 rounded-md border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium">Aprobado</button>
-                        <button onclick="cambiarEstadoRecibo('Rechazado')" class="text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
+                        <button onclick="abrirModalRechazar('recibo', reciboActualViendose.id)" class="text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
                         <button onclick="cambiarEstadoRecibo('Pendiente')" class="text-xs py-2 rounded-md border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium">Pendiente</button>
                     </div>
                 </div>
@@ -1765,12 +1795,16 @@ html.dark [id^="modal-"] button.border {
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Estado Actual</p>
                     <span id="ver-suspension-estado" class="inline-block px-2 py-1 rounded-md text-xs font-semibold"></span>
                 </div>
+                <div id="ver-suspension-motivo-container" class="hidden">
+    <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wider mb-1">Motivo del rechazo</p>
+    <div class="bg-rose-50 border border-rose-200 rounded-md p-3 text-xs text-rose-800 italic" id="ver-suspension-motivo"></div>
+</div>
                 <div class="pt-3 border-t border-slate-200 space-y-2">
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Cambiar Estado</p>
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="cambiarEstadoSuspension('Revisado')" class="text-xs py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-100 font-medium">Revisado</button>
                         <button onclick="cambiarEstadoSuspension('Aprobado')" class="text-xs py-2 rounded-md border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium">Aprobado</button>
-                        <button onclick="cambiarEstadoSuspension('Rechazado')" class="text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
+                        <button onclick="abrirModalRechazar('suspension', suspensionActualViendose.id)" class="text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
                         <button onclick="cambiarEstadoSuspension('Pendiente')" class="text-xs py-2 rounded-md border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium">Pendiente</button>
                     </div>
                 </div>
@@ -2713,6 +2747,16 @@ window.verContratoRecibido = function(id) {
     document.getElementById('ver-origen').textContent = contrato.origen === 'manual' ? 'MANUAL' : 'PÚBLICO';
     document.getElementById('ver-estado').className = `inline-block px-2 py-1 rounded-md text-xs font-semibold ${estadoInfo.clase}`;
     document.getElementById('ver-estado').innerHTML = `<i class="fa-solid ${estadoInfo.icono} mr-1"></i>${estadoActual}`;
+    // Mostrar motivo si está rechazado
+const motivoContrato = document.getElementById('ver-contrato-motivo');
+if (motivoContrato) {
+    if ((contrato.estado === 'Rechazado' || contrato.estado === 'Devuelto') && contrato.motivo_devolucion) {
+        motivoContrato.textContent = contrato.motivo_devolucion;
+        motivoContrato.parentElement.classList.remove('hidden');
+    } else {
+        motivoContrato.parentElement.classList.add('hidden');
+    }
+}
 
     // Periodo
     let periodoTxt = 'N/A';
@@ -4837,6 +4881,16 @@ window.verRecibo = function(id) {
     document.getElementById('ver-recibo-origen').textContent = r.origen === 'manual' ? 'MANUAL' : 'PÚBLICO';
     document.getElementById('ver-recibo-estado').className = `inline-block px-2 py-1 rounded-md text-xs font-semibold ${estInfo.clase}`;
     document.getElementById('ver-recibo-estado').innerHTML = `<i class="fa-solid ${estInfo.icono} mr-1"></i>${estadoR}`;
+    // Mostrar motivo si está rechazado
+const motivoRecibo = document.getElementById('ver-recibo-motivo');
+if (motivoRecibo) {
+    if ((r.estado === 'Rechazado' || r.estado === 'Devuelto') && r.motivo_devolucion) {
+        motivoRecibo.textContent = r.motivo_devolucion;
+        motivoRecibo.parentElement.classList.remove('hidden');
+    } else {
+        motivoRecibo.parentElement.classList.add('hidden');
+    }
+}
 
     const url = r.url_archivo;
     const ext = url.split('.').pop().toLowerCase().split('?')[0];
@@ -5099,6 +5153,16 @@ window.verSuspension = function(id) {
     document.getElementById('ver-suspension-origen').textContent = s.origen === 'manual' ? 'MANUAL' : 'PÚBLICO';
     document.getElementById('ver-suspension-estado').className = `inline-block px-2 py-1 rounded-md text-xs font-semibold ${estInfo.clase}`;
     document.getElementById('ver-suspension-estado').innerHTML = `<i class="fa-solid ${estInfo.icono} mr-1"></i>${estadoS}`;
+    // Mostrar motivo si está rechazado
+const motivoSuspension = document.getElementById('ver-suspension-motivo');
+if (motivoSuspension) {
+    if ((s.estado === 'Rechazado' || s.estado === 'Devuelto') && s.motivo_devolucion) {
+        motivoSuspension.textContent = s.motivo_devolucion;
+        motivoSuspension.parentElement.classList.remove('hidden');
+    } else {
+        motivoSuspension.parentElement.classList.add('hidden');
+    }
+}
 
     const url = s.url_archivo;
     const ext = url.split('.').pop().toLowerCase().split('?')[0];
@@ -5246,6 +5310,79 @@ async function descargarArchivoWorker(url, nombreFinal) {
 // Cargar al iniciar (dentro del DOMContentLoaded principal, sin anidar)
 cargarRecibosHonorarios();
 cargarSuspensiones();
+// ═══════════════════════════════════════════════════════════
+// MODAL RECHAZAR CON MOTIVO
+// ═══════════════════════════════════════════════════════════
+let rechazoPendiente = null; // { tipo: 'recibo' | 'suspension' | 'contrato', id }
+
+window.abrirModalRechazar = function(tipo, id) {
+    rechazoPendiente = { tipo, id };
+    document.getElementById('motivo-rechazo').value = '';
+    document.getElementById('contador-rechazo').textContent = '0';
+    const modal = document.getElementById('modal-rechazar');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+};
+
+window.cerrarModalRechazar = function() {
+    const modal = document.getElementById('modal-rechazar');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    rechazoPendiente = null;
+};
+
+document.getElementById('motivo-rechazo')?.addEventListener('input', (e) => {
+    document.getElementById('contador-rechazo').textContent = e.target.value.length;
+});
+
+document.getElementById('form-rechazar')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!rechazoPendiente) return;
+
+    const motivo = document.getElementById('motivo-rechazo').value.trim();
+    if (!motivo) {
+        mostrarNotificacion('Escribe el motivo del rechazo.', 'warning');
+        return;
+    }
+
+    const btn = document.getElementById('btn-confirmar-rechazo');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Procesando...';
+
+    try {
+        const { tipo, id } = rechazoPendiente;
+        let endpoint = '';
+
+        if (tipo === 'recibo') endpoint = '/admin/recibo/estado';
+        else if (tipo === 'suspension') endpoint = '/admin/suspension/estado';
+        else if (tipo === 'contrato') endpoint = '/admin/contrato/estado';
+
+        const resp = await fetch(`https://kardex-apis.angelve581.workers.dev${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Kardex-Key': CLOUDFLARE_SECRET_KEY },
+            body: JSON.stringify({ id, estado: 'Rechazado', motivo_devolucion: motivo })
+        });
+
+        if (!resp.ok) throw new Error(`Error ${resp.status}`);
+
+        mostrarNotificacion('Documento rechazado con motivo.', 'success');
+        cerrarModalRechazar();
+
+        if (tipo === 'recibo') await cargarRecibosHonorarios();
+        else if (tipo === 'suspension') await cargarSuspensiones();
+        else if (tipo === 'contrato') await cargarContratosRecibidos();
+
+    } catch (err) {
+        mostrarNotificacion('Error: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Confirmar Rechazo';
+    }
+});
+
+document.getElementById('modal-rechazar')?.addEventListener('click', (e) => {
+    if (e.target.id === 'modal-rechazar') cerrarModalRechazar();
+});
 });
 </script> 
 </body>
