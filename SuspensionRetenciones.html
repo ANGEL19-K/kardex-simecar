@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Suspensión de Retenciones - SIMECAR</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -64,6 +62,7 @@
 </div>
 
 <script>
+const KEY = 'b2f4e16e-10b3-4e57-8117-1446bdc1adee_32aef4ab-0f9d-40d6-bb4c-0f84490a36cc';
 const WORKER = 'https://kardex-apis.angelve581.workers.dev';
 
 const sesion = JSON.parse(sessionStorage.getItem('portalSesion') || 'null');
@@ -78,7 +77,6 @@ function toast(msg, tipo='ok') {
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
 }
 
-// PRIMERO: registrar el drop (esto hace que funcione el clic)
 const drop = document.getElementById('drop');
 const input = document.getElementById('archivo');
 const fileName = document.getElementById('file-name');
@@ -91,11 +89,9 @@ input.addEventListener('change', () => {
     }
 });
 
-// Poner el año actual por defecto
 const inputAnio = document.getElementById('anio');
 inputAnio.value = new Date().getFullYear();
 
-// DESPUÉS: el submit
 document.getElementById('form-suspension').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btn-enviar');
@@ -105,12 +101,6 @@ document.getElementById('form-suspension').addEventListener('submit', async (e) 
     if (!anio || anio < 2000 || anio > 2100) return toast('Ingresa un año válido (2000-2100)', 'warn');
     if (!archivo) return toast('Selecciona el archivo', 'warn');
     if (archivo.size > 10 * 1024 * 1024) return toast('El archivo supera 10 MB', 'warn');
-
-    // Leer la key AQUÍ (si no existe, avisamos al usuario en vez de romper la página)
-    const KEY = (typeof CLOUDFLARE_KEY_MURAL !== 'undefined') ? CLOUDFLARE_KEY_MURAL : null;
-    if (!KEY) {
-        return toast('Error de configuración: falta CLOUDFLARE_KEY_MURAL en config.js', 'err');
-    }
 
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo...';
