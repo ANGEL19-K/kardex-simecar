@@ -2023,12 +2023,12 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
             let contratosFiltrados = [];
             let paginaContratosActual = 1;
             const contratosPorPagina = 10;
-            let contratoActualViendose = null;
+            window.contratoActualViendose = null;
             let informesRecibidos = [];
             let informesFiltrados = [];
             let paginaInformesActual = 1;
             const informesPorPagina = 10;
-            let informeActualViendose = null;
+           window.informeActualViendose = null;
 
             const configuracionDocumentos = {
     DJ: { tbody: 'tbody-ddjj', columnas: ['Empleado', 'Fecha incidencia', 'Motivo', 'Supervisor'] },
@@ -4735,7 +4735,7 @@ let recibosHonorarios = [];
 let recibosFiltrados = [];
 let paginaRecibosActual = 1;
 const recibosPorPagina = 10;
-let reciboActualViendose = null;
+window.reciboActualViendose = null;
 
 async function cargarRecibosHonorarios() {
     const tbody = document.getElementById('tbody-recibos-honorarios');
@@ -5027,7 +5027,7 @@ let suspensiones = [];
 let suspensionesFiltradas = [];
 let paginaSuspensionesActual = 1;
 const suspensionesPorPagina = 10;
-let suspensionActualViendose = null;
+window.suspensionActualViendose = null;
 
 async function cargarSuspensiones() {
     const tbody = document.getElementById('tbody-suspensiones');
