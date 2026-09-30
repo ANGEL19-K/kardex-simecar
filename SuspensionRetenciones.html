@@ -107,10 +107,7 @@ document.getElementById('form-suspension').addEventListener('submit', async (e) 
     if (archivo.size > 10 * 1024 * 1024) return toast('El archivo supera 10 MB', 'warn');
 
     // Leer la key AQUÍ (si no existe, avisamos al usuario en vez de romper la página)
-    const KEY = (typeof CLOUDFLARE_KEY_MURAL !== 'undefined') ? CLOUDFLARE_KEY_MURAL : null;
-    if (!KEY) {
-        return toast('Error de configuración: falta CLOUDFLARE_KEY_MURAL en config.js', 'err');
-    }
+       const KEY = 'b2f4e16e-10b3-4e57-8117-1446bdc1adee_32aef4ab-0f9d-40d6-bb4c-0f84490a36cc';
 
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo...';
