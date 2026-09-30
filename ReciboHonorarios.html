@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recibo por Honorarios - SIMECAR</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; color: #1f2937; padding: 24px 16px; }
+    .container { max-width: 640px; margin: 0 auto; }
+    .back { color: #94a3b8; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+    .back:hover { color: white; }
+    .card { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+    h1 { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+    .sub { font-size: 14px; color: #64748b; margin-bottom: 24px; }
+    .field { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; font-family: inherit; }
+    input:focus, select:focus { outline: none; border-color: #0f766e; box-shadow: 0 0 0 4px rgba(15,118,110,0.12); }
+    .drop { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 28px; text-align: center; cursor: pointer; transition: all .2s; }
+    .drop:hover { border-color: #0f766e; background: #f0fdfa; }
+    .drop i { font-size: 32px; color: #94a3b8; margin-bottom: 8px; }
+    .drop p { font-size: 14px; color: #475569; }
+    .drop .file-name { font-size: 12px; color: #0f766e; font-weight: 600; margin-top: 8px; }
+    button { width: 100%; padding: 14px; background: linear-gradient(135deg, #0f766e, #115e59); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 8px; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .toast { position: fixed; top: 20px; right: 20px; padding: 14px 18px; border-radius: 10px; color: white; font-size: 14px; font-weight: 600; z-index: 100; opacity: 0; transform: translateX(100%); transition: all .3s; }
+    .toast.show { opacity: 1; transform: translateX(0); }
+    .toast.ok { background: #059669; }
+    .toast.err { background: #dc2626; }
+    .toast.warn { background: #d97706; }
+</style>
+</head>
+<body>
+<div class="container">
+    <a href="Portal.html" class="back"><i class="fa-solid fa-arrow-left"></i> Volver al portal</a>
+    <div class="card">
+        <h1><i class="fa-solid fa-file-invoice-dollar" style="color:#0f766e"></i> Recibo por Honorarios</h1>
+        <p class="sub">Sube tu recibo mensual. Formatos aceptados: PDF, JPG, PNG (máx 10 MB).</p>
+
+        <form id="form-recibo">
+            <div class="field">
+                <label>Periodo (mes)</label>
+                <input type="month" id="periodo" required>
+            </div>
+            <div class="field">
+                <label>Monto (S/)</label>
+                <input type="number" id="monto" step="0.01" min="0.01" required placeholder="0.00">
+            </div>
+            <div class="field">
+                <label>Archivo del recibo</label>
+                <div class="drop" id="drop">
+                    <i class="fa-solid fa-file-arrow-up"></i>
+                    <p>Haz clic o arrastra el archivo aquí</p>
+                    <p class="file-name" id="file-name" style="display:none"></p>
+                    <input type="file" id="archivo" accept=".pdf,.jpg,.jpeg,.png" hidden>
+                </div>
+            </div>
+            <button type="submit" id="btn-enviar">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Enviar recibo
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+const KEY = CLOUDFLARE_KEY_MURAL;  // viene de config.js
+const WORKER = 'https://kardex-apis.angelve581.workers.dev';
+
+const sesion = JSON.parse(sessionStorage.getItem('portalSesion') || 'null');
+if (!sesion) { window.location.replace('index.html'); }
+
+function toast(msg, tipo='ok') {
+    const t = document.createElement('div');
+    t.className = `toast ${tipo}`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.classList.add('show'), 10);
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+const drop = document.getElementById('drop');
+const input = document.getElementById('archivo');
+const fileName = document.getElementById('file-name');
+
+drop.addEventListener('click', () => input.click());
+input.addEventListener('change', () => {
+    if (input.files.length) {
+        fileName.textContent = `✓ ${input.files[0].name}`;
+        fileName.style.display = 'block';
+    }
+});
+
+document.getElementById('form-recibo').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-enviar');
+    const periodo = document.getElementById('periodo').value;
+    const monto = parseFloat(document.getElementById('monto').value);
+    const archivo = input.files[0];
+
+    if (!periodo || !monto || !archivo) return toast('Completa todos los campos', 'warn');
+    if (archivo.size > 10 * 1024 * 1024) return toast('El archivo supera 10 MB', 'warn');
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo...';
+
+    try {
+        const fd = new FormData();
+        fd.append('archivo', archivo);
+        fd.append('empleado_id', sesion.id);
+        fd.append('periodo', periodo);
+        fd.append('monto', monto);
+
+        const resp = await fetch(`${WORKER}/subir-recibo`, {
+            method: 'POST',
+            headers: { 'X-Kardex-Key': KEY },
+            body: fd
+        });
+
+        if (!resp.ok) throw new Error(`Error ${resp.status}`);
+        const data = await resp.json();
+        if (!data.ok) throw new Error(data.error || 'Error desconocido');
+
+        toast('Recibo enviado correctamente', 'ok');
+        document.getElementById('form-recibo').reset();
+        fileName.style.display = 'none';
+    } catch (err) {
+        toast('Error: ' + err.message, 'err');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Enviar recibo';
+    }
+});
+</script>
+</body>
+</html>

@@ -137,6 +137,11 @@
             .login-body { padding: 24px 20px; }
             .login-header { padding: 32px 20px 26px; }
         }
+        .card.recibos { color: #0f766e; }
+.card.recibos .card-icon { background: #ccfbf1; color: #0f766e; }
+
+.card.suspension { color: #b45309; }
+.card.suspension .card-icon { background: #fef3c7; color: #b45309; }
     </style>
 </head>
 <body>
@@ -230,7 +235,23 @@
                     </div>
                     <div class="card-arrow"><i class="fa-solid fa-chevron-right"></i></div>
                 </a>
+            <a href="ReciboHonorarios.html" class="card recibos">
+    <div class="card-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+    <div class="card-content">
+        <h3>Recibo por Honorarios</h3>
+        <p>Sube tu recibo mensual (PDF o foto)</p>
+    </div>
+    <div class="card-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+</a>
 
+<a href="SuspensionRetenciones.html" class="card suspension">
+    <div class="card-icon"><i class="fa-solid fa-shield-halved"></i></div>
+    <div class="card-content">
+        <h3>Suspensión de Retenciones</h3>
+        <p>Sube tu constancia de suspensión SUNAT</p>
+    </div>
+    <div class="card-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+</a>
             </div>
 
             <button class="btn-logout" onclick="cerrarSesion()">

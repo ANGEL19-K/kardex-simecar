@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suspensión de Retenciones - SIMECAR</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; color: #1f2937; padding: 24px 16px; }
+    .container { max-width: 640px; margin: 0 auto; }
+    .back { color: #94a3b8; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+    .back:hover { color: white; }
+    .card { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+    h1 { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+    .sub { font-size: 14px; color: #64748b; margin-bottom: 24px; }
+    .field { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; font-family: inherit; }
+    input:focus, select:focus { outline: none; border-color: #b45309; box-shadow: 0 0 0 4px rgba(180,83,9,0.12); }
+    .drop { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 28px; text-align: center; cursor: pointer; transition: all .2s; }
+    .drop:hover { border-color: #b45309; background: #fffbeb; }
+    .drop i { font-size: 32px; color: #94a3b8; margin-bottom: 8px; }
+    .drop p { font-size: 14px; color: #475569; }
+    .drop .file-name { font-size: 12px; color: #b45309; font-weight: 600; margin-top: 8px; }
+    button { width: 100%; padding: 14px; background: linear-gradient(135deg, #b45309, #92400e); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 8px; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .toast { position: fixed; top: 20px; right: 20px; padding: 14px 18px; border-radius: 10px; color: white; font-size: 14px; font-weight: 600; z-index: 100; opacity: 0; transform: translateX(100%); transition: all .3s; }
+    .toast.show { opacity: 1; transform: translateX(0); }
+    .toast.ok { background: #059669; }
+    .toast.err { background: #dc2626; }
+    .toast.warn { background: #d97706; }
+</style>
+</head>
+<body>
+<div class="container">
+    <a href="Portal.html" class="back"><i class="fa-solid fa-arrow-left"></i> Volver al portal</a>
+    <div class="card">
+        <h1><i class="fa-solid fa-shield-halved" style="color:#b45309"></i> Suspensión de Retenciones</h1>
+        <p class="sub">Sube tu constancia de suspensión de retenciones de cuarta categoría emitida por SUNAT.</p>
+
+        <form id="form-suspension">
+            <div class="field">
+                <label>Año de vigencia</label>
+                <input type="number" id="anio" required min="2000" max="2100" step="1" placeholder="Ej. 2026">
+            </div>
+            <div class="field">
+                <label>Archivo de la constancia</label>
+                <div class="drop" id="drop">
+                    <i class="fa-solid fa-file-arrow-up"></i>
+                    <p>Haz clic o arrastra el archivo aquí</p>
+                    <p class="file-name" id="file-name" style="display:none"></p>
+                    <input type="file" id="archivo" accept=".pdf,.jpg,.jpeg,.png" hidden>
+                </div>
+            </div>
+            <button type="submit" id="btn-enviar">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Enviar constancia
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+const WORKER = 'https://kardex-apis.angelve581.workers.dev';
+
+const sesion = JSON.parse(sessionStorage.getItem('portalSesion') || 'null');
+if (!sesion) { window.location.replace('Portal.html'); }
+
+function toast(msg, tipo='ok') {
+    const t = document.createElement('div');
+    t.className = `toast ${tipo}`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.classList.add('show'), 10);
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+// PRIMERO: registrar el drop (esto hace que funcione el clic)
+const drop = document.getElementById('drop');
+const input = document.getElementById('archivo');
+const fileName = document.getElementById('file-name');
+
+drop.addEventListener('click', () => input.click());
+input.addEventListener('change', () => {
+    if (input.files.length) {
+        fileName.textContent = `✓ ${input.files[0].name}`;
+        fileName.style.display = 'block';
+    }
+});
+
+// Poner el año actual por defecto
+const inputAnio = document.getElementById('anio');
+inputAnio.value = new Date().getFullYear();
+
+// DESPUÉS: el submit
+document.getElementById('form-suspension').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-enviar');
+    const anio = parseInt(inputAnio.value);
+    const archivo = input.files[0];
+
+    if (!anio || anio < 2000 || anio > 2100) return toast('Ingresa un año válido (2000-2100)', 'warn');
+    if (!archivo) return toast('Selecciona el archivo', 'warn');
+    if (archivo.size > 10 * 1024 * 1024) return toast('El archivo supera 10 MB', 'warn');
+
+    // Leer la key AQUÍ (si no existe, avisamos al usuario en vez de romper la página)
+    const KEY = (typeof CLOUDFLARE_KEY_MURAL !== 'undefined') ? CLOUDFLARE_KEY_MURAL : null;
+    if (!KEY) {
+        return toast('Error de configuración: falta CLOUDFLARE_KEY_MURAL en config.js', 'err');
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo...';
+
+    try {
+        const fd = new FormData();
+        fd.append('archivo', archivo);
+        fd.append('empleado_id', sesion.id);
+        fd.append('anio_vigencia', anio);
+
+        const resp = await fetch(`${WORKER}/subir-suspension`, {
+            method: 'POST',
+            headers: { 'X-Kardex-Key': KEY },
+            body: fd
+        });
+
+        if (!resp.ok) throw new Error(`Error ${resp.status}`);
+        const data = await resp.json();
+        if (!data.ok) throw new Error(data.error || 'Error desconocido');
+
+        toast('Constancia enviada correctamente', 'ok');
+        document.getElementById('form-suspension').reset();
+        inputAnio.value = new Date().getFullYear();
+        fileName.style.display = 'none';
+    } catch (err) {
+        toast('Error: ' + err.message, 'err');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Enviar constancia';
+    }
+});
+</script>
+</body>
+</html>

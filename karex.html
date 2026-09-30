@@ -14,7 +14,6 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="config-admin.js"></script>
 
     <script>
         tailwind.config = {
@@ -569,22 +568,24 @@ html.dark [id^="modal-"] button.border {
             <a href="#" class="nav-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white transition-colors" data-target="docs-renuncias">
                 <img src="renuncia.png" alt="" class="nav-image w-5 h-5 mr-3 object-contain rounded-sm"> Cartas de Renuncia
             </a>
-            <a href="#" class="nav-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white transition-colors" data-target="informes-entregables">
-    <i class="fa-solid fa-file-lines w-5 mr-3 text-center text-sky-400"></i> Informes de Entregables
+<a href="#" class="nav-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white transition-colors" data-target="informes-entregables">
+    <img src="informes.png" alt="" class="nav-image w-5 h-5 mr-3 object-contain rounded-sm"> Informes de Entregables
 </a>
             <a href="#" class="nav-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white transition-colors" data-target="docs-recibos">
                 <img src="recibos.png" alt="" class="nav-image w-5 h-5 mr-3 object-contain rounded-sm"> Recibos por Honorarios
             </a>
+<a href="#" class="nav-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white transition-colors" data-target="docs-suspensiones">
+    <img src="suspension.png" alt="" class="nav-image w-5 h-5 mr-3 object-contain rounded-sm"> Suspensiones de Retención
+</a>
             <a href="#" class="nav-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white transition-colors" data-target="auditoria">
                 <i class="fa-solid fa-clock-rotate-left w-5 mr-3 text-center"></i> Historial de cambios
             </a>
-            
             <div class="pt-6 pb-2">
                 <p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Comunicación</p>
             </div>
-            <a href="#" class="nav-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white transition-colors" data-target="avisos">
-                <i class="fa-solid fa-bullhorn w-5 mr-3 text-center text-amber-500"></i> Mural de Avisos
-            </a>
+<a href="#" class="nav-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white transition-colors" data-target="avisos">
+    <img src="avisos.png" alt="" class="nav-image w-5 h-5 mr-3 object-contain rounded-sm"> Mural de Avisos
+</a>
         </nav>
     </aside>
     
@@ -1183,64 +1184,175 @@ html.dark [id^="modal-"] button.border {
             </div>
 
             <!-- VISTA: RECIBOS POR HONORARIOS -->
-            <div id="view-docs-recibos" class="view-section hidden animate-fade-in">
-                <div class="mb-6">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-violet-600">Gestión Documental</p>
-                    <h1 class="text-2xl font-bold text-slate-800 mt-1">Recibos por Honorarios</h1>
+            <<!-- VISTA: RECIBOS POR HONORARIOS (unificada) -->
+<div id="view-docs-recibos" class="view-section hidden animate-fade-in">
+    <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-teal-600">Gestión Documental</p>
+            <h1 class="text-2xl font-bold text-slate-800 mt-1">Recibos por Honorarios</h1>
+            <p class="text-sm text-slate-500 mt-1">Recibos subidos por los trabajadores desde el portal y registrados manualmente.</p>
+        </div>
+        <button type="button" id="btn-nuevo-recibo-manual" class="bg-corporate-accent hover:bg-sky-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm flex items-center">
+            <i class="fa-solid fa-plus mr-2"></i> Subir Recibo Manual
+        </button>
+    </div>
+
+    <!-- KPIs -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+            <p class="text-xs font-medium text-slate-500">Total Recibos</p>
+            <p id="kpi-total-recibos" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+            <p class="text-xs font-medium text-amber-600">Pendientes</p>
+            <p id="kpi-recibos-pendientes" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+            <p class="text-xs font-medium text-emerald-600">Aprobados</p>
+            <p id="kpi-recibos-aprobados" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+            <p class="text-xs font-medium text-slate-500">Monto Total (S/)</p>
+            <p id="kpi-recibos-monto" class="text-2xl font-bold text-slate-800 mt-1">0.00</p>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 bg-slate-50">
+            <div class="flex flex-col gap-3">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                    <h3 class="font-semibold text-slate-800">Registros</h3>
+                    <div class="relative w-full lg:w-80">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="search" id="buscar-recibo" placeholder="Buscar nombre o DNI..." class="w-full border border-slate-300 rounded-md pl-9 pr-10 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-corporate-accent">
+                        <button type="button" id="btn-limpiar-recibo" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
                 </div>
-                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                    <section class="bg-white rounded-lg shadow-sm border border-slate-200 p-5 xl:col-span-1 h-fit">
-                        <form class="document-upload-form space-y-4" data-categoria="Recibo">
-                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider border-b pb-2 mb-3">Nuevo Recibo</h3>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Prestador (Locador)</label>
-                                <select required class="select-empleado w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-violet-500"></select>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Periodo</label>
-                                    <input type="month" name="periodo" required class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-violet-500">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Monto (S/)</label>
-                                    <input type="number" step="0.01" name="monto" required placeholder="0.00" class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-violet-500">
-                                </div>
-                            </div>
-                            <div class="document-drop-zone border-2 border-dashed border-slate-300 rounded-md bg-slate-50 p-6 text-center transition-colors">
-                                <i class="fa-solid fa-file-invoice-dollar text-3xl text-slate-300 mb-2"></i>
-                                <p class="text-sm text-slate-600"><label class="text-violet-600 font-medium cursor-pointer hover:underline">Seleccionar archivo<input type="file" class="sr-only document-file-input" accept=".pdf,.xml" required></label></p>
-                                <p class="document-file-name text-xs text-slate-400 mt-3 hidden"></p>
-                            </div>
-                            <button type="submit" class="document-submit w-full bg-violet-600 hover:bg-violet-700 text-white px-4 py-2.5 rounded-md text-sm font-medium transition-colors"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>Subir Recibo</button>
-                        </form>
-                    </section>
-                    <section class="bg-white rounded-lg shadow-sm border border-slate-200 xl:col-span-2">
-                        <div class="px-5 py-4 border-b border-slate-200 bg-slate-50">
-                            <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                                <div><h3 class="font-semibold text-slate-800">Recibos Procesados</h3><p class="document-summary text-xs text-slate-500" data-summary="Recibo" aria-live="polite">Cargando registros...</p></div>
-                                <div class="flex flex-wrap gap-2">
-                                    <input class="document-search rounded-md border border-slate-300 px-3 py-2 text-sm" data-category="Recibo" type="search" placeholder="Buscar recibo..." aria-label="Buscar recibos">
-                                    <button type="button" class="document-export rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100" data-category="Recibo" data-format="excel"><i class="fa-solid fa-file-excel mr-1 text-emerald-600"></i>Excel</button>
-                                    <button type="button" class="document-export rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100" data-category="Recibo" data-format="pdf"><i class="fa-solid fa-file-pdf mr-1 text-rose-600"></i>PDF</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="overflow-x-auto no-scrollbar">
-                            <table class="min-w-full divide-y divide-slate-200 text-sm">
-                                <thead class="bg-white">
-                                    <tr>
-                                        <th class="px-5 py-3 text-left font-medium text-slate-500 uppercase tracking-wider text-xs">Prestador</th>
-                                        <th class="px-5 py-3 text-left font-medium text-slate-500 uppercase tracking-wider text-xs">Periodo</th>
-                                        <th class="px-5 py-3 text-left font-medium text-slate-500 uppercase tracking-wider text-xs">Monto</th>
-                                        <th class="px-5 py-3 text-right font-medium text-slate-500 uppercase tracking-wider text-xs">Archivo</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbody-recibos" class="divide-y divide-slate-100"></tbody>
-                            </table>
-                        </div>
-                    </section>
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-2">
+                    <select id="filtro-estado-recibo" class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-corporate-accent">
+                        <option value="Todos">Todos los estados</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Revisado">Revisado</option>
+                        <option value="Aprobado">Aprobado</option>
+                        <option value="Rechazado">Rechazado</option>
+                    </select>
+                    <input type="month" id="filtro-periodo-recibo" class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-corporate-accent" title="Periodo">
+                    <input type="date" id="filtro-desde-recibo" class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-corporate-accent" title="Desde">
+                    <input type="date" id="filtro-hasta-recibo" class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-corporate-accent" title="Hasta">
+                    <button type="button" id="btn-limpiar-filtros-recibo" class="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100">
+                        <i class="fa-solid fa-eraser mr-1"></i>Limpiar
+                    </button>
                 </div>
+                <p id="resumen-recibos" class="text-xs text-slate-500"></p>
             </div>
+        </div>
+        <div class="overflow-x-auto no-scrollbar">
+            <table class="min-w-[900px] w-full divide-y divide-slate-200 text-sm">
+                <thead class="bg-white">
+                    <tr>
+                        <th class="px-5 py-3 text-left font-medium text-slate-500 uppercase tracking-wider text-xs">Fecha Envío</th>
+                        <th class="px-5 py-3 text-left font-medium text-slate-500 uppercase tracking-wider text-xs">Trabajador</th>
+                        <th class="px-5 py-3 text-left font-medium text-slate-500 uppercase tracking-wider text-xs">Periodo</th>
+                        <th class="px-5 py-3 text-left font-medium text-slate-500 uppercase tracking-wider text-xs">Monto</th>
+                        <th class="px-5 py-3 text-center font-medium text-slate-500 uppercase tracking-wider text-xs">Origen</th>
+                        <th class="px-5 py-3 text-center font-medium text-slate-500 uppercase tracking-wider text-xs">Estado</th>
+                        <th class="px-5 py-3 text-right font-medium text-slate-500 uppercase tracking-wider text-xs">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-recibos-honorarios" class="divide-y divide-slate-100"></tbody>
+            </table>
+        </div>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200 px-5 py-3">
+            <p id="pagina-recibos" class="text-xs text-slate-500"></p>
+            <div class="flex gap-2">
+                <button type="button" id="btn-recibos-anterior" class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Anterior</button>
+                <button type="button" id="btn-recibos-siguiente" class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Siguiente</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- VISTA: SUSPENSIONES DE RETENCIÓN -->
+<div id="view-docs-suspensiones" class="view-section hidden animate-fade-in">
+    <div class="mb-6">
+        <p class="text-xs font-semibold uppercase tracking-wider text-amber-600">Gestión Documental</p>
+        <h1 class="text-2xl font-bold text-slate-800 mt-1">Suspensiones de Retención</h1>
+        <p class="text-sm text-slate-500 mt-1">Constancias de suspensión de retenciones de cuarta categoría emitidas por SUNAT.</p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+            <p class="text-xs font-medium text-slate-500">Total</p>
+            <p id="kpi-total-suspensiones" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+            <p class="text-xs font-medium text-amber-600">Pendientes</p>
+            <p id="kpi-suspensiones-pendientes" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+            <p class="text-xs font-medium text-emerald-600">Aprobadas</p>
+            <p id="kpi-suspensiones-aprobadas" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 bg-slate-50">
+            <div class="flex flex-col gap-3">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                    <h3 class="font-semibold text-slate-800">Registros</h3>
+                    <div class="relative w-full lg:w-80">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="search" id="buscar-suspension" placeholder="Buscar nombre o DNI..." class="w-full border border-slate-300 rounded-md pl-9 pr-10 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-corporate-accent">
+                        <button type="button" id="btn-limpiar-suspension" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                    <select id="filtro-estado-suspension" class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-corporate-accent">
+                        <option value="Todos">Todos los estados</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Revisado">Revisado</option>
+                        <option value="Aprobado">Aprobado</option>
+                        <option value="Rechazado">Rechazado</option>
+                    </select>
+                    <select id="filtro-anio-suspension" class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-corporate-accent">
+                        <option value="Todos">Todos los años</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                    </select>
+                    <input type="date" id="filtro-desde-suspension" class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white" title="Desde">
+                    <button type="button" id="btn-limpiar-filtros-suspension" class="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100">
+                        <i class="fa-solid fa-eraser mr-1"></i>Limpiar
+                    </button>
+                </div>
+                <p id="resumen-suspensiones" class="text-xs text-slate-500"></p>
+            </div>
+        </div>
+        <div class="overflow-x-auto no-scrollbar">
+            <table class="min-w-[900px] w-full divide-y divide-slate-200 text-sm">
+                <thead class="bg-white">
+                    <tr>
+                        <th class="px-5 py-3 text-left font-medium text-slate-500 uppercase tracking-wider text-xs">Fecha Envío</th>
+                        <th class="px-5 py-3 text-left font-medium text-slate-500 uppercase tracking-wider text-xs">Trabajador</th>
+                        <th class="px-5 py-3 text-left font-medium text-slate-500 uppercase tracking-wider text-xs">Año Vigencia</th>
+                        <th class="px-5 py-3 text-center font-medium text-slate-500 uppercase tracking-wider text-xs">Origen</th>
+                        <th class="px-5 py-3 text-center font-medium text-slate-500 uppercase tracking-wider text-xs">Estado</th>
+                        <th class="px-5 py-3 text-right font-medium text-slate-500 uppercase tracking-wider text-xs">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-suspensiones" class="divide-y divide-slate-100"></tbody>
+            </table>
+        </div>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200 px-5 py-3">
+            <p id="pagina-suspensiones" class="text-xs text-slate-500"></p>
+            <div class="flex gap-2">
+                <button type="button" id="btn-suspensiones-anterior" class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Anterior</button>
+                <button type="button" id="btn-suspensiones-siguiente" class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Siguiente</button>
+            </div>
+        </div>
+    </div>
+</div>
 
             <div id="view-auditoria" class="view-section hidden animate-fade-in">
                 <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -1528,6 +1640,159 @@ html.dark [id^="modal-"] button.border {
         </form>
     </div>
 </div>
+<!-- MODAL: VER RECIBO -->
+<div id="modal-ver-recibo" class="fixed inset-0 z-[170] hidden items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-5xl rounded-lg bg-white shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+        <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="h-10 w-10 rounded-full bg-teal-600 text-white flex items-center justify-center text-lg flex-shrink-0">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+                <div class="min-w-0">
+                    <h3 id="ver-recibo-titulo" class="font-bold text-slate-800 text-lg truncate">Recibo</h3>
+                    <p id="ver-recibo-subtitulo" class="text-xs text-slate-500"></p>
+                </div>
+            </div>
+            <button onclick="cerrarModalVerRecibo()" class="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 h-8 w-8 rounded-full flex items-center justify-center border border-slate-200 flex-shrink-0">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="flex flex-col lg:flex-row flex-1 overflow-hidden">
+            <div class="lg:w-80 flex-shrink-0 border-r border-slate-200 overflow-y-auto p-5 space-y-4 bg-slate-50">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Trabajador</p>
+                    <p id="ver-recibo-nombre" class="text-sm font-semibold text-slate-800"></p>
+                    <p id="ver-recibo-dni" class="text-xs text-slate-500 mt-0.5"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Periodo</p>
+                    <p id="ver-recibo-periodo" class="text-sm text-slate-700"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Monto</p>
+                    <p id="ver-recibo-monto" class="text-lg font-bold text-emerald-600"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Enviado</p>
+                    <p id="ver-recibo-fecha" class="text-sm text-slate-700"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Origen</p>
+                    <span id="ver-recibo-origen" class="inline-block px-2 py-1 rounded-md text-xs font-semibold"></span>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Estado Actual</p>
+                    <span id="ver-recibo-estado" class="inline-block px-2 py-1 rounded-md text-xs font-semibold"></span>
+                </div>
+                <div class="pt-3 border-t border-slate-200 space-y-2">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Cambiar Estado</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="cambiarEstadoRecibo('Revisado')" class="text-xs py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-100 font-medium">Revisado</button>
+                        <button onclick="cambiarEstadoRecibo('Aprobado')" class="text-xs py-2 rounded-md border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium">Aprobado</button>
+                        <button onclick="cambiarEstadoRecibo('Rechazado')" class="text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
+                        <button onclick="cambiarEstadoRecibo('Pendiente')" class="text-xs py-2 rounded-md border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium">Pendiente</button>
+                    </div>
+                </div>
+                <div class="pt-3 border-t border-slate-200 space-y-2">
+                    <button id="btn-descargar-recibo" class="w-full flex items-center justify-center gap-2 bg-corporate-accent hover:bg-sky-700 text-white px-4 py-2.5 rounded-md text-sm font-medium shadow-sm">
+                        <i class="fa-solid fa-download"></i> Descargar
+                    </button>
+                    <button onclick="eliminarReciboActual()" class="w-full flex items-center justify-center gap-2 border border-rose-300 bg-white hover:bg-rose-50 text-rose-600 px-4 py-2.5 rounded-md text-sm font-medium">
+                        <i class="fa-solid fa-trash-can"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+            <div class="flex-1 bg-slate-900 relative flex items-center justify-center overflow-hidden">
+                <div id="ver-recibo-loader" class="absolute inset-0 flex flex-col items-center justify-center z-10">
+                    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-white mb-3"></i>
+                    <p class="text-slate-400 text-sm">Cargando archivo...</p>
+                </div>
+                <img id="ver-recibo-imagen" class="hidden max-w-full max-h-full object-contain" alt="Recibo">
+                <iframe id="ver-recibo-pdf" class="hidden w-full h-full border-0" title="Vista previa del recibo"></iframe>
+                <div id="ver-recibo-no-preview" class="hidden flex flex-col items-center justify-center text-slate-400 p-8 text-center">
+                    <i class="fa-solid fa-file-lines text-6xl mb-4 opacity-50"></i>
+                    <p class="text-sm">Este tipo de archivo no se puede previsualizar.</p>
+                    <p class="text-xs mt-2">Usa el botón "Descargar" para abrirlo.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: VER SUSPENSIÓN -->
+<div id="modal-ver-suspension" class="fixed inset-0 z-[170] hidden items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-5xl rounded-lg bg-white shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+        <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="h-10 w-10 rounded-full bg-amber-600 text-white flex items-center justify-center text-lg flex-shrink-0">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="min-w-0">
+                    <h3 id="ver-suspension-titulo" class="font-bold text-slate-800 text-lg truncate">Suspensión</h3>
+                    <p id="ver-suspension-subtitulo" class="text-xs text-slate-500"></p>
+                </div>
+            </div>
+            <button onclick="cerrarModalVerSuspension()" class="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 h-8 w-8 rounded-full flex items-center justify-center border border-slate-200 flex-shrink-0">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="flex flex-col lg:flex-row flex-1 overflow-hidden">
+            <div class="lg:w-80 flex-shrink-0 border-r border-slate-200 overflow-y-auto p-5 space-y-4 bg-slate-50">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Trabajador</p>
+                    <p id="ver-suspension-nombre" class="text-sm font-semibold text-slate-800"></p>
+                    <p id="ver-suspension-dni" class="text-xs text-slate-500 mt-0.5"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Año Vigencia</p>
+                    <p id="ver-suspension-anio" class="text-lg font-bold text-amber-600"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Enviado</p>
+                    <p id="ver-suspension-fecha" class="text-sm text-slate-700"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Origen</p>
+                    <span id="ver-suspension-origen" class="inline-block px-2 py-1 rounded-md text-xs font-semibold"></span>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Estado Actual</p>
+                    <span id="ver-suspension-estado" class="inline-block px-2 py-1 rounded-md text-xs font-semibold"></span>
+                </div>
+                <div class="pt-3 border-t border-slate-200 space-y-2">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Cambiar Estado</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="cambiarEstadoSuspension('Revisado')" class="text-xs py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-100 font-medium">Revisado</button>
+                        <button onclick="cambiarEstadoSuspension('Aprobado')" class="text-xs py-2 rounded-md border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium">Aprobado</button>
+                        <button onclick="cambiarEstadoSuspension('Rechazado')" class="text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
+                        <button onclick="cambiarEstadoSuspension('Pendiente')" class="text-xs py-2 rounded-md border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium">Pendiente</button>
+                    </div>
+                </div>
+                <div class="pt-3 border-t border-slate-200 space-y-2">
+                    <button id="btn-descargar-suspension" class="w-full flex items-center justify-center gap-2 bg-corporate-accent hover:bg-sky-700 text-white px-4 py-2.5 rounded-md text-sm font-medium shadow-sm">
+                        <i class="fa-solid fa-download"></i> Descargar
+                    </button>
+                    <button onclick="eliminarSuspensionActual()" class="w-full flex items-center justify-center gap-2 border border-rose-300 bg-white hover:bg-rose-50 text-rose-600 px-4 py-2.5 rounded-md text-sm font-medium">
+                        <i class="fa-solid fa-trash-can"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+            <div class="flex-1 bg-slate-900 relative flex items-center justify-center overflow-hidden">
+                <div id="ver-suspension-loader" class="absolute inset-0 flex flex-col items-center justify-center z-10">
+                    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-white mb-3"></i>
+                    <p class="text-slate-400 text-sm">Cargando archivo...</p>
+                </div>
+                <img id="ver-suspension-imagen" class="hidden max-w-full max-h-full object-contain" alt="Suspensión">
+                <iframe id="ver-suspension-pdf" class="hidden w-full h-full border-0" title="Vista previa de la suspensión"></iframe>
+                <div id="ver-suspension-no-preview" class="hidden flex flex-col items-center justify-center text-slate-400 p-8 text-center">
+                    <i class="fa-solid fa-file-lines text-6xl mb-4 opacity-50"></i>
+                    <p class="text-sm">Este tipo de archivo no se puede previsualizar.</p>
+                    <p class="text-xs mt-2">Usa el botón "Descargar" para abrirlo.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
             <!-- VISTA: MURAL DE AVISOS -->
             <div id="view-avisos" class="view-section hidden animate-fade-in">
                 <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -1641,7 +1906,14 @@ html.dark [id^="modal-"] button.border {
                 }, 3500);
             };
 
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    global: {
+        headers: {
+            'apikey': SUPABASE_KEY
+        }
+    }
+});
 
             function subirArchivoConProgreso(archivo, url, key, onProgress) {
     return new Promise((resolve, reject) => {
@@ -4149,7 +4421,13 @@ if (manualInformeDrop) {
                     input.value = '';
                 }
         }); 
-        const supabaseMural = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseMural = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    global: {
+        headers: {
+            'apikey': SUPABASE_KEY
+        }
+    }
+});
 
         const formAviso = document.getElementById('form-nuevo-aviso');
         const avisoInputImagen = document.getElementById('aviso-imagen');
@@ -4400,6 +4678,568 @@ await fetch(workerUrl, {
         console.warn('No se pudo notificar al mural:', e);
     }
 };
+// ═══════════════════════════════════════════════════════════
+// RECIBOS POR HONORARIOS (unificado)
+// ═══════════════════════════════════════════════════════════
+let recibosHonorarios = [];
+let recibosFiltrados = [];
+let paginaRecibosActual = 1;
+const recibosPorPagina = 10;
+let reciboActualViendose = null;
+
+async function cargarRecibosHonorarios() {
+    const tbody = document.getElementById('tbody-recibos-honorarios');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" class="px-5 py-10 text-center text-sm text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Cargando recibos...</td></tr>';
+    try {
+        const resp = await fetch('https://kardex-apis.angelve581.workers.dev/admin/recibos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Kardex-Key': CLOUDFLARE_SECRET_KEY }
+        });
+        if (!resp.ok) throw new Error(`Error ${resp.status}`);
+        const json = await resp.json();
+        recibosHonorarios = json.recibos || [];
+        aplicarFiltrosRecibos();
+        actualizarKPIsRecibos();
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-10 text-center text-sm text-rose-600">Error: ${e.message}</td></tr>`;
+    }
+}
+
+function actualizarKPIsRecibos() {
+    const total = recibosHonorarios.length;
+    const pendientes = recibosHonorarios.filter(r => (r.estado || 'Pendiente') === 'Pendiente').length;
+    const aprobados = recibosHonorarios.filter(r => r.estado === 'Aprobado').length;
+    const montoTotal = recibosHonorarios.reduce((s, r) => s + Number(r.monto || 0), 0);
+    document.getElementById('kpi-total-recibos').textContent = total;
+    document.getElementById('kpi-recibos-pendientes').textContent = pendientes;
+    document.getElementById('kpi-recibos-aprobados').textContent = aprobados;
+    document.getElementById('kpi-recibos-monto').textContent = montoTotal.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function aplicarFiltrosRecibos() {
+    const busqueda = normalizarTexto(document.getElementById('buscar-recibo')?.value || '');
+    const estado = document.getElementById('filtro-estado-recibo')?.value || 'Todos';
+    const periodo = document.getElementById('filtro-periodo-recibo')?.value || '';
+    const desde = document.getElementById('filtro-desde-recibo')?.value || '';
+    const hasta = document.getElementById('filtro-hasta-recibo')?.value || '';
+
+    recibosFiltrados = recibosHonorarios.filter(r => {
+        const emp = r.empleados || {};
+        const texto = normalizarTexto(`${emp.nombre_completo || ''} ${emp.dni || ''}`);
+        if (busqueda && !texto.includes(busqueda)) return false;
+        const estadoR = r.estado || 'Pendiente';
+        if (estado !== 'Todos' && estadoR !== estado) return false;
+        if (periodo && !(r.periodo || '').startsWith(periodo)) return false;
+        if (desde || hasta) {
+            const f = new Date(r.fecha_envio).toISOString().split('T')[0];
+            if (desde && f < desde) return false;
+            if (hasta && f > hasta) return false;
+        }
+        return true;
+    });
+    paginaRecibosActual = 1;
+    renderizarRecibosHonorarios();
+}
+
+function renderizarRecibosHonorarios() {
+    const tbody = document.getElementById('tbody-recibos-honorarios');
+    if (!tbody) return;
+    const total = recibosFiltrados.length;
+    const totalPag = Math.max(1, Math.ceil(total / recibosPorPagina));
+    paginaRecibosActual = Math.min(paginaRecibosActual, totalPag);
+    const inicio = (paginaRecibosActual - 1) * recibosPorPagina;
+    const visibles = recibosFiltrados.slice(inicio, inicio + recibosPorPagina);
+    tbody.innerHTML = '';
+    if (!visibles.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="px-5 py-10 text-center text-sm text-slate-500"><i class="fa-solid fa-inbox text-3xl text-slate-300 block mb-2"></i>No hay recibos con esos filtros.</td></tr>';
+        document.getElementById('resumen-recibos').textContent = 'Mostrando 0 registros';
+        document.getElementById('pagina-recibos').textContent = 'Página 1 de 1';
+        document.getElementById('btn-recibos-anterior').disabled = true;
+        document.getElementById('btn-recibos-siguiente').disabled = true;
+        return;
+    }
+    const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    visibles.forEach(r => {
+        const emp = r.empleados || {};
+        const fecha = new Date(r.fecha_envio).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+        let periodo = r.periodo || 'N/A';
+        if (r.periodo && r.periodo.includes('-')) {
+            const [y, m] = r.periodo.split('-');
+            periodo = `${meses[parseInt(m)-1]} ${y}`;
+        }
+        const estadoR = r.estado || 'Pendiente';
+        const estInfo = configuracionEstados[estadoR];
+        const origen = r.origen === 'manual'
+            ? '<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-semibold">MANUAL</span>'
+            : '<span class="px-2 py-0.5 bg-teal-100 text-teal-700 rounded text-[10px] font-semibold">PÚBLICO</span>';
+        const monto = Number(r.monto || 0).toLocaleString('es-PE', { style: 'currency', currency: 'PEN' });
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors';
+        tr.innerHTML = `
+            <td class="px-5 py-3 whitespace-nowrap text-xs text-slate-600">${fecha}</td>
+            <td class="px-5 py-3">
+                <p class="text-sm font-semibold text-slate-800">${emp.nombre_completo || 'N/A'}</p>
+                <p class="text-xs text-slate-500">DNI: ${emp.dni || 'N/A'}</p>
+            </td>
+            <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-600">${periodo}</td>
+            <td class="px-5 py-3 whitespace-nowrap text-sm font-bold text-emerald-600">${monto}</td>
+            <td class="px-5 py-3 whitespace-nowrap text-center">${origen}</td>
+            <td class="px-5 py-3 whitespace-nowrap text-center">
+                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold ${estInfo.clase}">
+                    <i class="fa-solid ${estInfo.icono}"></i> ${estadoR}
+                </span>
+            </td>
+            <td class="px-5 py-3 whitespace-nowrap text-right">
+               <button onclick="verRecibo('${r.id}')" class="text-corporate-accent hover:text-sky-800 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded transition-colors text-xs font-semibold mr-1">
+    <i class="fa-solid fa-eye mr-1"></i>Ver
+</button>
+<button onclick="eliminarReciboPorId('${r.id}')" class="text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-1.5 rounded transition-colors text-xs">
+    <i class="fa-solid fa-trash-can"></i>
+</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+    document.getElementById('resumen-recibos').textContent = `Mostrando ${inicio + 1}-${Math.min(inicio + recibosPorPagina, total)} de ${total} recibos`;
+    document.getElementById('pagina-recibos').textContent = `Página ${paginaRecibosActual} de ${totalPag}`;
+    document.getElementById('btn-recibos-anterior').disabled = paginaRecibosActual === 1;
+    document.getElementById('btn-recibos-siguiente').disabled = paginaRecibosActual === totalPag;
+}
+
+window.verRecibo = function(id) {
+    const r = recibosHonorarios.find(x => x.id === id);
+    if (!r) return;
+    reciboActualViendose = r;
+    const emp = r.empleados || {};
+    const estadoR = r.estado || 'Pendiente';
+    const estInfo = configuracionEstados[estadoR];
+    document.getElementById('ver-recibo-titulo').textContent = emp.nombre_completo || 'Recibo';
+    document.getElementById('ver-recibo-subtitulo').textContent = `Recibo por Honorarios`;
+    document.getElementById('ver-recibo-nombre').textContent = emp.nombre_completo || 'N/A';
+    document.getElementById('ver-recibo-dni').textContent = `DNI: ${emp.dni || 'N/A'}`;
+    const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    let periodoTxt = r.periodo || 'N/A';
+    if (r.periodo && r.periodo.includes('-')) {
+        const [y, m] = r.periodo.split('-');
+        periodoTxt = `${meses[parseInt(m)-1]} ${y}`;
+    }
+    document.getElementById('ver-recibo-periodo').textContent = periodoTxt;
+    document.getElementById('ver-recibo-monto').textContent = Number(r.monto || 0).toLocaleString('es-PE', { style: 'currency', currency: 'PEN' });
+    document.getElementById('ver-recibo-fecha').textContent = new Date(r.fecha_envio).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    document.getElementById('ver-recibo-origen').className = 'inline-block px-2 py-1 rounded-md text-xs font-semibold ' + (r.origen === 'manual' ? 'bg-slate-100 text-slate-700' : 'bg-teal-100 text-teal-700');
+    document.getElementById('ver-recibo-origen').textContent = r.origen === 'manual' ? 'MANUAL' : 'PÚBLICO';
+    document.getElementById('ver-recibo-estado').className = `inline-block px-2 py-1 rounded-md text-xs font-semibold ${estInfo.clase}`;
+    document.getElementById('ver-recibo-estado').innerHTML = `<i class="fa-solid ${estInfo.icono} mr-1"></i>${estadoR}`;
+
+    const url = r.url_archivo;
+    const ext = url.split('.').pop().toLowerCase().split('?')[0];
+    const img = document.getElementById('ver-recibo-imagen');
+    const pdf = document.getElementById('ver-recibo-pdf');
+    const noPrev = document.getElementById('ver-recibo-no-preview');
+    const loader = document.getElementById('ver-recibo-loader');
+    img.classList.add('hidden'); pdf.classList.add('hidden'); noPrev.classList.add('hidden'); loader.classList.remove('hidden');
+    pdf.src = '';
+    if (['jpg','jpeg','png','webp','gif'].includes(ext)) {
+        img.src = url;
+        img.onload = () => { loader.classList.add('hidden'); img.classList.remove('hidden'); };
+        img.onerror = () => { loader.classList.add('hidden'); noPrev.classList.remove('hidden'); };
+    } else if (ext === 'pdf') {
+        pdf.src = url + '#toolbar=1&navpanes=0';
+        setTimeout(() => { loader.classList.add('hidden'); pdf.classList.remove('hidden'); }, 500);
+    } else {
+        setTimeout(() => { loader.classList.add('hidden'); noPrev.classList.remove('hidden'); }, 300);
+    }
+    const btn = document.getElementById('btn-descargar-recibo');
+    const nuevo = btn.cloneNode(true);
+    btn.parentNode.replaceChild(nuevo, btn);
+    nuevo.addEventListener('click', () => descargarArchivoWorker(r.url_archivo, `Recibo_${normalizarTexto(emp.nombre_completo || 'trabajador').replace(/\s+/g, '_')}_${r.periodo || ''}.${ext}`));
+    const modal = document.getElementById('modal-ver-recibo');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+};
+
+window.cerrarModalVerRecibo = function() {
+    const m = document.getElementById('modal-ver-recibo');
+    m.classList.add('hidden'); m.classList.remove('flex');
+    document.getElementById('ver-recibo-imagen').src = '';
+    document.getElementById('ver-recibo-pdf').src = '';
+    reciboActualViendose = null;
+};
+
+window.cambiarEstadoRecibo = async function(nuevoEstado) {
+    if (!reciboActualViendose) return;
+    try {
+        const resp = await fetch('https://kardex-apis.angelve581.workers.dev/admin/recibo/estado', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Kardex-Key': CLOUDFLARE_SECRET_KEY },
+            body: JSON.stringify({ id: reciboActualViendose.id, estado: nuevoEstado })
+        });
+        if (!resp.ok) throw new Error(`Error ${resp.status}`);
+        reciboActualViendose.estado = nuevoEstado;
+        mostrarNotificacion(`Estado cambiado a: ${nuevoEstado}`, 'success');
+        const estInfo = configuracionEstados[nuevoEstado];
+        const badge = document.getElementById('ver-recibo-estado');
+        badge.className = `inline-block px-2 py-1 rounded-md text-xs font-semibold ${estInfo.clase}`;
+        badge.innerHTML = `<i class="fa-solid ${estInfo.icono} mr-1"></i>${nuevoEstado}`;
+        const idx = recibosHonorarios.findIndex(x => x.id === reciboActualViendose.id);
+        if (idx !== -1) recibosHonorarios[idx].estado = nuevoEstado;
+        renderizarRecibosHonorarios();
+        actualizarKPIsRecibos();
+    } catch (e) {
+        mostrarNotificacion('Error: ' + e.message, 'error');
+    }
+};
+
+window.eliminarReciboActual = function() {
+    if (!reciboActualViendose) return;
+    const id = reciboActualViendose.id;
+    cerrarModalVerRecibo();
+    eliminarReciboPorId(id);
+};
+
+window.eliminarReciboPorId = async function(id) {
+    const r = recibosHonorarios.find(x => x.id === id);
+    if (!r) return;
+    if (!confirm(`¿Eliminar el recibo de "${r.empleados?.nombre_completo || 'trabajador'}"?`)) return;
+    try {
+        const nombreR2 = r.url_archivo.split('/').pop().split('?')[0];
+        await fetch(`https://kardex-apis.angelve581.workers.dev/${nombreR2}`, {
+            method: 'DELETE',
+            headers: { 'X-Kardex-Key': CLOUDFLARE_SECRET_KEY, 'X-Confirm-Delete': 'true' }
+        });
+        const resp = await fetch('https://kardex-apis.angelve581.workers.dev/admin/recibo/eliminar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Kardex-Key': CLOUDFLARE_SECRET_KEY },
+            body: JSON.stringify({ id })
+        });
+        if (!resp.ok) throw new Error(`Error ${resp.status}`);
+        mostrarNotificacion('Recibo eliminado correctamente', 'success');
+        await cargarRecibosHonorarios();
+    } catch (e) {
+        mostrarNotificacion('Error: ' + e.message, 'error');
+    }
+};
+
+// Botón de subir manual (reutiliza el modal de contratos con adaptación o haz uno simple)
+document.getElementById('btn-nuevo-recibo-manual')?.addEventListener('click', () => {
+    mostrarNotificacion('Sube el recibo manual desde el portal o crea un modal específico.', 'warning');
+});
+
+// Filtros y paginación recibos
+document.getElementById('buscar-recibo')?.addEventListener('input', (e) => {
+    document.getElementById('btn-limpiar-recibo').classList.toggle('hidden', !e.target.value);
+    aplicarFiltrosRecibos();
+});
+document.getElementById('btn-limpiar-recibo')?.addEventListener('click', () => {
+    document.getElementById('buscar-recibo').value = '';
+    document.getElementById('btn-limpiar-recibo').classList.add('hidden');
+    aplicarFiltrosRecibos();
+});
+document.getElementById('filtro-estado-recibo')?.addEventListener('change', aplicarFiltrosRecibos);
+document.getElementById('filtro-periodo-recibo')?.addEventListener('change', aplicarFiltrosRecibos);
+document.getElementById('filtro-desde-recibo')?.addEventListener('change', aplicarFiltrosRecibos);
+document.getElementById('filtro-hasta-recibo')?.addEventListener('change', aplicarFiltrosRecibos);
+document.getElementById('btn-limpiar-filtros-recibo')?.addEventListener('click', () => {
+    document.getElementById('buscar-recibo').value = '';
+    document.getElementById('filtro-estado-recibo').value = 'Todos';
+    document.getElementById('filtro-periodo-recibo').value = '';
+    document.getElementById('filtro-desde-recibo').value = '';
+    document.getElementById('filtro-hasta-recibo').value = '';
+    document.getElementById('btn-limpiar-recibo').classList.add('hidden');
+    aplicarFiltrosRecibos();
+});
+document.getElementById('btn-recibos-anterior')?.addEventListener('click', () => {
+    if (paginaRecibosActual > 1) { paginaRecibosActual--; renderizarRecibosHonorarios(); }
+});
+document.getElementById('btn-recibos-siguiente')?.addEventListener('click', () => {
+    const totalPag = Math.ceil(recibosFiltrados.length / recibosPorPagina);
+    if (paginaRecibosActual < totalPag) { paginaRecibosActual++; renderizarRecibosHonorarios(); }
+});
+document.getElementById('modal-ver-recibo')?.addEventListener('click', (e) => {
+    if (e.target.id === 'modal-ver-recibo') cerrarModalVerRecibo();
+});
+
+// ═══════════════════════════════════════════════════════════
+// SUSPENSIONES DE RETENCIÓN
+// ═══════════════════════════════════════════════════════════
+let suspensiones = [];
+let suspensionesFiltradas = [];
+let paginaSuspensionesActual = 1;
+const suspensionesPorPagina = 10;
+let suspensionActualViendose = null;
+
+async function cargarSuspensiones() {
+    const tbody = document.getElementById('tbody-suspensiones');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-10 text-center text-sm text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Cargando suspensiones...</td></tr>';
+    try {
+        const resp = await fetch('https://kardex-apis.angelve581.workers.dev/admin/suspensiones', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Kardex-Key': CLOUDFLARE_SECRET_KEY }
+        });
+        if (!resp.ok) throw new Error(`Error ${resp.status}`);
+        const json = await resp.json();
+        suspensiones = json.suspensiones || [];
+        aplicarFiltrosSuspensiones();
+        actualizarKPIsSuspensiones();
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-10 text-center text-sm text-rose-600">Error: ${e.message}</td></tr>`;
+    }
+}
+
+function actualizarKPIsSuspensiones() {
+    const total = suspensiones.length;
+    const pend = suspensiones.filter(s => (s.estado || 'Pendiente') === 'Pendiente').length;
+    const apro = suspensiones.filter(s => s.estado === 'Aprobado').length;
+    document.getElementById('kpi-total-suspensiones').textContent = total;
+    document.getElementById('kpi-suspensiones-pendientes').textContent = pend;
+    document.getElementById('kpi-suspensiones-aprobadas').textContent = apro;
+}
+
+function aplicarFiltrosSuspensiones() {
+    const busqueda = normalizarTexto(document.getElementById('buscar-suspension')?.value || '');
+    const estado = document.getElementById('filtro-estado-suspension')?.value || 'Todos';
+    const anio = document.getElementById('filtro-anio-suspension')?.value || 'Todos';
+    const desde = document.getElementById('filtro-desde-suspension')?.value || '';
+    suspensionesFiltradas = suspensiones.filter(s => {
+        const emp = s.empleados || {};
+        const texto = normalizarTexto(`${emp.nombre_completo || ''} ${emp.dni || ''}`);
+        if (busqueda && !texto.includes(busqueda)) return false;
+        const estadoS = s.estado || 'Pendiente';
+        if (estado !== 'Todos' && estadoS !== estado) return false;
+        if (anio !== 'Todos' && String(s.anio_vigencia) !== anio) return false;
+        if (desde) {
+            const f = new Date(s.fecha_envio).toISOString().split('T')[0];
+            if (f < desde) return false;
+        }
+        return true;
+    });
+    paginaSuspensionesActual = 1;
+    renderizarSuspensiones();
+}
+
+function renderizarSuspensiones() {
+    const tbody = document.getElementById('tbody-suspensiones');
+    if (!tbody) return;
+    const total = suspensionesFiltradas.length;
+    const totalPag = Math.max(1, Math.ceil(total / suspensionesPorPagina));
+    paginaSuspensionesActual = Math.min(paginaSuspensionesActual, totalPag);
+    const inicio = (paginaSuspensionesActual - 1) * suspensionesPorPagina;
+    const visibles = suspensionesFiltradas.slice(inicio, inicio + suspensionesPorPagina);
+    tbody.innerHTML = '';
+    if (!visibles.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-10 text-center text-sm text-slate-500"><i class="fa-solid fa-inbox text-3xl text-slate-300 block mb-2"></i>No hay suspensiones con esos filtros.</td></tr>';
+        document.getElementById('resumen-suspensiones').textContent = 'Mostrando 0 registros';
+        document.getElementById('pagina-suspensiones').textContent = 'Página 1 de 1';
+        document.getElementById('btn-suspensiones-anterior').disabled = true;
+        document.getElementById('btn-suspensiones-siguiente').disabled = true;
+        return;
+    }
+    visibles.forEach(s => {
+        const emp = s.empleados || {};
+        const fecha = new Date(s.fecha_envio).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+        const estadoS = s.estado || 'Pendiente';
+        const estInfo = configuracionEstados[estadoS];
+        const origen = s.origen === 'manual'
+            ? '<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-semibold">MANUAL</span>'
+            : '<span class="px-2 py-0.5 bg-teal-100 text-teal-700 rounded text-[10px] font-semibold">PÚBLICO</span>';
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors';
+        tr.innerHTML = `
+            <td class="px-5 py-3 whitespace-nowrap text-xs text-slate-600">${fecha}</td>
+            <td class="px-5 py-3">
+                <p class="text-sm font-semibold text-slate-800">${emp.nombre_completo || 'N/A'}</p>
+                <p class="text-xs text-slate-500">DNI: ${emp.dni || 'N/A'}</p>
+            </td>
+            <td class="px-5 py-3 whitespace-nowrap text-sm font-bold text-amber-600">${s.anio_vigencia}</td>
+            <td class="px-5 py-3 whitespace-nowrap text-center">${origen}</td>
+            <td class="px-5 py-3 whitespace-nowrap text-center">
+                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold ${estInfo.clase}">
+                    <i class="fa-solid ${estInfo.icono}"></i> ${estadoS}
+                </span>
+            </td>
+            <td class="px-5 py-3 whitespace-nowrap text-right">
+             <button onclick="verSuspension('${s.id}')" class="text-corporate-accent hover:text-sky-800 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded transition-colors text-xs font-semibold mr-1">
+    <i class="fa-solid fa-eye mr-1"></i>Ver
+</button>
+<button onclick="eliminarSuspensionPorId('${s.id}')" class="text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-1.5 rounded transition-colors text-xs">
+    <i class="fa-solid fa-trash-can"></i>
+</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+    document.getElementById('resumen-suspensiones').textContent = `Mostrando ${inicio + 1}-${Math.min(inicio + suspensionesPorPagina, total)} de ${total} suspensiones`;
+    document.getElementById('pagina-suspensiones').textContent = `Página ${paginaSuspensionesActual} de ${totalPag}`;
+    document.getElementById('btn-suspensiones-anterior').disabled = paginaSuspensionesActual === 1;
+    document.getElementById('btn-suspensiones-siguiente').disabled = paginaSuspensionesActual === totalPag;
+}
+
+window.verSuspension = function(id) {
+    const s = suspensiones.find(x => x.id === id);
+    if (!s) return;
+    suspensionActualViendose = s;
+    const emp = s.empleados || {};
+    const estadoS = s.estado || 'Pendiente';
+    const estInfo = configuracionEstados[estadoS];
+    document.getElementById('ver-suspension-titulo').textContent = emp.nombre_completo || 'Suspensión';
+    document.getElementById('ver-suspension-subtitulo').textContent = `Suspensión de Retenciones`;
+    document.getElementById('ver-suspension-nombre').textContent = emp.nombre_completo || 'N/A';
+    document.getElementById('ver-suspension-dni').textContent = `DNI: ${emp.dni || 'N/A'}`;
+    document.getElementById('ver-suspension-anio').textContent = s.anio_vigencia;
+    document.getElementById('ver-suspension-fecha').textContent = new Date(s.fecha_envio).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    document.getElementById('ver-suspension-origen').className = 'inline-block px-2 py-1 rounded-md text-xs font-semibold ' + (s.origen === 'manual' ? 'bg-slate-100 text-slate-700' : 'bg-teal-100 text-teal-700');
+    document.getElementById('ver-suspension-origen').textContent = s.origen === 'manual' ? 'MANUAL' : 'PÚBLICO';
+    document.getElementById('ver-suspension-estado').className = `inline-block px-2 py-1 rounded-md text-xs font-semibold ${estInfo.clase}`;
+    document.getElementById('ver-suspension-estado').innerHTML = `<i class="fa-solid ${estInfo.icono} mr-1"></i>${estadoS}`;
+
+    const url = s.url_archivo;
+    const ext = url.split('.').pop().toLowerCase().split('?')[0];
+    const img = document.getElementById('ver-suspension-imagen');
+    const pdf = document.getElementById('ver-suspension-pdf');
+    const noPrev = document.getElementById('ver-suspension-no-preview');
+    const loader = document.getElementById('ver-suspension-loader');
+    img.classList.add('hidden'); pdf.classList.add('hidden'); noPrev.classList.add('hidden'); loader.classList.remove('hidden');
+    pdf.src = '';
+    if (['jpg','jpeg','png','webp','gif'].includes(ext)) {
+        img.src = url;
+        img.onload = () => { loader.classList.add('hidden'); img.classList.remove('hidden'); };
+        img.onerror = () => { loader.classList.add('hidden'); noPrev.classList.remove('hidden'); };
+    } else if (ext === 'pdf') {
+        pdf.src = url + '#toolbar=1&navpanes=0';
+        setTimeout(() => { loader.classList.add('hidden'); pdf.classList.remove('hidden'); }, 500);
+    } else {
+        setTimeout(() => { loader.classList.add('hidden'); noPrev.classList.remove('hidden'); }, 300);
+    }
+    const btn = document.getElementById('btn-descargar-suspension');
+    const nuevo = btn.cloneNode(true);
+    btn.parentNode.replaceChild(nuevo, btn);
+    nuevo.addEventListener('click', () => descargarArchivoWorker(s.url_archivo, `Suspension_${normalizarTexto(emp.nombre_completo || 'trabajador').replace(/\s+/g, '_')}_${s.anio_vigencia}.${ext}`));
+    const modal = document.getElementById('modal-ver-suspension');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+};
+
+window.cerrarModalVerSuspension = function() {
+    const m = document.getElementById('modal-ver-suspension');
+    m.classList.add('hidden'); m.classList.remove('flex');
+    document.getElementById('ver-suspension-imagen').src = '';
+    document.getElementById('ver-suspension-pdf').src = '';
+    suspensionActualViendose = null;
+};
+
+window.cambiarEstadoSuspension = async function(nuevoEstado) {
+    if (!suspensionActualViendose) return;
+    try {
+        const resp = await fetch('https://kardex-apis.angelve581.workers.dev/admin/suspension/estado', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Kardex-Key': CLOUDFLARE_SECRET_KEY },
+            body: JSON.stringify({ id: suspensionActualViendose.id, estado: nuevoEstado })
+        });
+        if (!resp.ok) throw new Error(`Error ${resp.status}`);
+        suspensionActualViendose.estado = nuevoEstado;
+        mostrarNotificacion(`Estado cambiado a: ${nuevoEstado}`, 'success');
+        const estInfo = configuracionEstados[nuevoEstado];
+        const badge = document.getElementById('ver-suspension-estado');
+        badge.className = `inline-block px-2 py-1 rounded-md text-xs font-semibold ${estInfo.clase}`;
+        badge.innerHTML = `<i class="fa-solid ${estInfo.icono} mr-1"></i>${nuevoEstado}`;
+        const idx = suspensiones.findIndex(x => x.id === suspensionActualViendose.id);
+        if (idx !== -1) suspensiones[idx].estado = nuevoEstado;
+        renderizarSuspensiones();
+        actualizarKPIsSuspensiones();
+    } catch (e) {
+        mostrarNotificacion('Error: ' + e.message, 'error');
+    }
+};
+
+window.eliminarSuspensionActual = function() {
+    if (!suspensionActualViendose) return;
+    const id = suspensionActualViendose.id;
+    cerrarModalVerSuspension();
+    eliminarSuspensionPorId(id);
+};
+
+window.eliminarSuspensionPorId = async function(id) {
+    const s = suspensiones.find(x => x.id === id);
+    if (!s) return;
+    if (!confirm(`¿Eliminar la suspensión de "${s.empleados?.nombre_completo || 'trabajador'}"?`)) return;
+    try {
+        const nombreR2 = s.url_archivo.split('/').pop().split('?')[0];
+        await fetch(`https://kardex-apis.angelve581.workers.dev/${nombreR2}`, {
+            method: 'DELETE',
+            headers: { 'X-Kardex-Key': CLOUDFLARE_SECRET_KEY, 'X-Confirm-Delete': 'true' }
+        });
+        const resp = await fetch('https://kardex-apis.angelve581.workers.dev/admin/suspension/eliminar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Kardex-Key': CLOUDFLARE_SECRET_KEY },
+            body: JSON.stringify({ id })
+        });
+        if (!resp.ok) throw new Error(`Error ${resp.status}`);
+        mostrarNotificacion('Suspensión eliminada correctamente', 'success');
+        await cargarSuspensiones();
+    } catch (e) {
+        mostrarNotificacion('Error: ' + e.message, 'error');
+    }
+};
+
+document.getElementById('buscar-suspension')?.addEventListener('input', (e) => {
+    document.getElementById('btn-limpiar-suspension').classList.toggle('hidden', !e.target.value);
+    aplicarFiltrosSuspensiones();
+});
+document.getElementById('btn-limpiar-suspension')?.addEventListener('click', () => {
+    document.getElementById('buscar-suspension').value = '';
+    document.getElementById('btn-limpiar-suspension').classList.add('hidden');
+    aplicarFiltrosSuspensiones();
+});
+document.getElementById('filtro-estado-suspension')?.addEventListener('change', aplicarFiltrosSuspensiones);
+document.getElementById('filtro-anio-suspension')?.addEventListener('change', aplicarFiltrosSuspensiones);
+document.getElementById('filtro-desde-suspension')?.addEventListener('change', aplicarFiltrosSuspensiones);
+document.getElementById('btn-limpiar-filtros-suspension')?.addEventListener('click', () => {
+    document.getElementById('buscar-suspension').value = '';
+    document.getElementById('filtro-estado-suspension').value = 'Todos';
+    document.getElementById('filtro-anio-suspension').value = 'Todos';
+    document.getElementById('filtro-desde-suspension').value = '';
+    document.getElementById('btn-limpiar-suspension').classList.add('hidden');
+    aplicarFiltrosSuspensiones();
+});
+document.getElementById('btn-suspensiones-anterior')?.addEventListener('click', () => {
+    if (paginaSuspensionesActual > 1) { paginaSuspensionesActual--; renderizarSuspensiones(); }
+});
+document.getElementById('btn-suspensiones-siguiente')?.addEventListener('click', () => {
+    const totalPag = Math.ceil(suspensionesFiltradas.length / suspensionesPorPagina);
+    if (paginaSuspensionesActual < totalPag) { paginaSuspensionesActual++; renderizarSuspensiones(); }
+});
+document.getElementById('modal-ver-suspension')?.addEventListener('click', (e) => {
+    if (e.target.id === 'modal-ver-suspension') cerrarModalVerSuspension();
+});
+
+// Helper: descargar desde Worker con X-Kardex-Key
+async function descargarArchivoWorker(url, nombreFinal) {
+    try {
+        const nombreR2 = url.split('/').pop().split('?')[0];
+        const resp = await fetch(`https://kardex-apis.angelve581.workers.dev/${nombreR2}?name=${encodeURIComponent(nombreFinal)}`, {
+            headers: { 'X-Kardex-Key': CLOUDFLARE_SECRET_KEY }
+        });
+        if (!resp.ok) throw new Error(`Error ${resp.status}`);
+        const blob = await resp.blob();
+        const urlBlob = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = urlBlob;
+        link.download = nombreFinal;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(urlBlob);
+        mostrarNotificacion('Descargando archivo...', 'success');
+    } catch (e) {
+        mostrarNotificacion('Error al descargar: ' + e.message, 'error');
+    }
+}
+
+// Cargar al iniciar (dentro del DOMContentLoaded principal, sin anidar)
+cargarRecibosHonorarios();
+cargarSuspensiones();
 });
 </script> 
 </body>
