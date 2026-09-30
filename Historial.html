@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="config.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; color: #1f2937; padding: 20px; }
@@ -33,6 +32,8 @@
         .section-title .icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
         .section-title.contratos .icon { background: rgba(2, 132, 199, 0.2); color: #38bdf8; }
         .section-title.informes .icon { background: rgba(15, 118, 110, 0.2); color: #5eead4; }
+        .section-title.recibos .icon { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+        .section-title.suspensiones .icon { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
         .doc-card { background: white; border-radius: 14px; padding: 20px; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-left: 5px solid #0f766e; transition: all 0.2s; }
         .doc-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
         .doc-card.aprobado { border-left-color: #10b981; }
@@ -95,7 +96,6 @@
             <p>Todo lo que has enviado a SIMECAR</p>
         </div>
 
-        <!-- CARD DE USUARIO -->
         <div class="user-card">
             <div class="user-icon">
                 <i class="fa-solid fa-user"></i>
@@ -126,7 +126,6 @@
 
     </div>
     <script>
-        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         const configuracionEstados = {
             'Pendiente': { clase: 'pendiente', icono: 'fa-clock', texto: 'Pendiente' },
             'Revisado': { clase: 'revisado', icono: 'fa-eye', texto: 'Revisado' },
@@ -156,92 +155,109 @@
             await cargarHistorial(usuario.dni);
         });
 
-async function cargarHistorial(dni) {
-    const contenedor = document.getElementById('contenido');
+        async function cargarHistorial(dni) {
+            const contenedor = document.getElementById('contenido');
+            const KEY = 'b2f4e16e-10b3-4e57-8117-1446bdc1adee_32aef4ab-0f9d-40d6-bb4c-0f84490a36cc';
 
-    try {
-        const respuesta = await fetch('https://kardex-apis.angelve581.workers.dev/historial', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Kardex-Key': CLOUDFLARE_KEY   
-            },
-            body: JSON.stringify({ dni: dni })
-        });
+            try {
+                const respuesta = await fetch('https://kardex-apis.angelve581.workers.dev/historial', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Kardex-Key': KEY
+                    },
+                    body: JSON.stringify({ dni: dni })
+                });
 
-        if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
+                if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
 
-        const data = await respuesta.json();
+                const data = await respuesta.json();
 
-        const contratos = data.contratos || [];
-        const informes = data.informes || [];
+                const contratos = data.contratos || [];
+                const informes = data.informes || [];
+                const recibos = data.recibos || [];
+                const suspensiones = data.suspensiones || [];
 
-        const total = contratos.length + informes.length;
-        const aprobados = [...contratos, ...informes].filter(d => d.estado === 'Aprobado').length;
-        const devueltos = [...contratos, ...informes].filter(d => d.estado === 'Devuelto' || d.estado === 'Rechazado').length;
+                const todos = [...contratos, ...informes, ...recibos, ...suspensiones];
+                const total = todos.length;
+                const aprobados = todos.filter(d => d.estado === 'Aprobado').length;
+                const devueltos = todos.filter(d => d.estado === 'Devuelto' || d.estado === 'Rechazado').length;
 
-        document.getElementById('total-docs').textContent = total;
-        document.getElementById('total-aprobados').textContent = aprobados;
-        document.getElementById('total-devueltos').textContent = devueltos;
+                document.getElementById('total-docs').textContent = total;
+                document.getElementById('total-aprobados').textContent = aprobados;
+                document.getElementById('total-devueltos').textContent = devueltos;
 
-        let html = '';
+                let html = '';
 
-        html += `
-            <div class="section">
-                <div class="section-title contratos">
-                    <span class="icon"><i class="fa-solid fa-file-signature"></i></span>
-                    Contratos enviados (${contratos.length})
-                </div>
-        `;
+                html += `
+                    <div class="section">
+                        <div class="section-title contratos">
+                            <span class="icon"><i class="fa-solid fa-file-signature"></i></span>
+                            Contratos enviados (${contratos.length})
+                        </div>
+                `;
+                if (contratos.length === 0) {
+                    html += `<div class="vacio"><i class="fa-solid fa-folder-open"></i><p>Aún no has enviado ningún contrato.</p></div>`;
+                } else {
+                    contratos.forEach(c => { html += renderDocCard(c, 'contrato'); });
+                }
+                html += `</div>`;
 
-        if (contratos.length === 0) {
-            html += `
-                <div class="vacio">
-                    <i class="fa-solid fa-folder-open"></i>
-                    <p>Aún no has enviado ningún contrato.</p>
-                </div>
-            `;
-        } else {
-            contratos.forEach(c => {
-                html += renderDocCard(c, 'contrato');
-            });
+                html += `
+                    <div class="section">
+                        <div class="section-title informes">
+                            <span class="icon"><i class="fa-solid fa-file-lines"></i></span>
+                            Informes enviados (${informes.length})
+                        </div>
+                `;
+                if (informes.length === 0) {
+                    html += `<div class="vacio"><i class="fa-solid fa-folder-open"></i><p>Aún no has enviado ningún informe.</p></div>`;
+                } else {
+                    informes.forEach(i => { html += renderDocCard(i, 'informe'); });
+                }
+                html += `</div>`;
+
+                html += `
+                    <div class="section">
+                        <div class="section-title recibos">
+                            <span class="icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+                            Recibos por Honorarios enviados (${recibos.length})
+                        </div>
+                `;
+                if (recibos.length === 0) {
+                    html += `<div class="vacio"><i class="fa-solid fa-folder-open"></i><p>Aún no has enviado ningún recibo.</p></div>`;
+                } else {
+                    recibos.forEach(r => { html += renderDocCard(r, 'recibo'); });
+                }
+                html += `</div>`;
+
+                html += `
+                    <div class="section">
+                        <div class="section-title suspensiones">
+                            <span class="icon"><i class="fa-solid fa-shield-halved"></i></span>
+                            Suspensiones de Retención enviadas (${suspensiones.length})
+                        </div>
+                `;
+                if (suspensiones.length === 0) {
+                    html += `<div class="vacio"><i class="fa-solid fa-folder-open"></i><p>Aún no has enviado ninguna suspensión.</p></div>`;
+                } else {
+                    suspensiones.forEach(s => { html += renderDocCard(s, 'suspension'); });
+                }
+                html += `</div>`;
+
+                contenedor.innerHTML = html;
+
+            } catch (error) {
+                console.error(error);
+                contenedor.innerHTML = `
+                    <div class="vacio">
+                        <i class="fa-solid fa-exclamation-triangle" style="color: #ef4444;"></i>
+                        <p>Error al cargar tu historial.</p>
+                        <p style="font-size: 12px; margin-top: 8px; color: #cbd5e1;">${error.message}</p>
+                    </div>
+                `;
+            }
         }
-        html += `</div>`;
-        html += `
-            <div class="section">
-                <div class="section-title informes">
-                    <span class="icon"><i class="fa-solid fa-file-lines"></i></span>
-                    Informes enviados (${informes.length})
-                </div>
-        `;
-
-        if (informes.length === 0) {
-            html += `
-                <div class="vacio">
-                    <i class="fa-solid fa-folder-open"></i>
-                    <p>Aún no has enviado ningún informe.</p>
-                </div>
-            `;
-        } else {
-            informes.forEach(i => {
-                html += renderDocCard(i, 'informe');
-            });
-        }
-        html += `</div>`;
-
-        contenedor.innerHTML = html;
-
-    } catch (error) {
-        console.error(error);
-        contenedor.innerHTML = `
-            <div class="vacio">
-                <i class="fa-solid fa-exclamation-triangle" style="color: #ef4444;"></i>
-                <p>Error al cargar tu historial.</p>
-                <p style="font-size: 12px; margin-top: 8px; color: #cbd5e1;">${error.message}</p>
-            </div>
-        `;
-    }
-}
 
         function renderDocCard(doc, tipo) {
             const estadoActual = doc.estado || 'Pendiente';
@@ -255,8 +271,7 @@ async function cargarHistorial(dni) {
             let periodoHtml = '';
 
             if (tipo === 'contrato') {
-                const tipoContrato = doc.tipo_recibo === 'Planilla' ? 'Contrato Planilla' : 'Contrato Honorarios';
-                titulo = tipoContrato;
+                titulo = doc.tipo_recibo === 'Planilla' ? 'Contrato Planilla' : 'Contrato Honorarios';
                 let periodoTexto = 'N/A';
                 if (doc.tipo_recibo === 'Planilla' && doc.mes_inicio) {
                     const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -267,7 +282,7 @@ async function cargarHistorial(dni) {
                     periodoTexto = `${d}/${m}/${y}`;
                 }
                 periodoHtml = `<span><i class="fa-solid fa-calendar"></i> Periodo: ${periodoTexto}</span>`;
-            } else {
+            } else if (tipo === 'informe') {
                 titulo = 'Informe de Entregables';
                 const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
                 let periodoTexto = doc.periodo;
@@ -276,12 +291,26 @@ async function cargarHistorial(dni) {
                     periodoTexto = `${meses[parseInt(month)-1]} ${year}`;
                 }
                 periodoHtml = `<span><i class="fa-solid fa-calendar"></i> Periodo: ${periodoTexto}</span>`;
+            } else if (tipo === 'recibo') {
+                titulo = 'Recibo por Honorarios';
+                const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+                let periodoTexto = doc.periodo;
+                if (doc.periodo && doc.periodo.includes('-')) {
+                    const [year, month] = doc.periodo.split('-');
+                    periodoTexto = `${meses[parseInt(month)-1]} ${year}`;
+                }
+                const monto = Number(doc.monto || 0).toLocaleString('es-PE', { style: 'currency', currency: 'PEN' });
+                periodoHtml = `<span><i class="fa-solid fa-calendar"></i> Periodo: ${periodoTexto}</span><span><i class="fa-solid fa-money-bill"></i> Monto: ${monto}</span>`;
+            } else if (tipo === 'suspension') {
+                titulo = 'Suspensión de Retenciones';
+                periodoHtml = `<span><i class="fa-solid fa-calendar"></i> Año vigencia: ${doc.anio_vigencia}</span>`;
             }
+
             let motivoHtml = '';
             if ((estadoActual === 'Devuelto' || estadoActual === 'Rechazado') && doc.motivo_devolucion) {
                 motivoHtml = `
                     <div class="motivo-box">
-                        <div class="titulo"><i class="fa-solid fa-circle-exclamation"></i> Motivo de la devolución</div>
+                        <div class="titulo"><i class="fa-solid fa-circle-exclamation"></i> Motivo del rechazo</div>
                         <div class="texto">${doc.motivo_devolucion}</div>
                     </div>
                 `;
@@ -290,8 +319,12 @@ async function cargarHistorial(dni) {
             let accionesHtml = '';
             const urlArchivo = doc.url_archivo;
 
+            let linkCorrect = 'Contratos.html';
+            if (tipo === 'informe') linkCorrect = 'Informes.html';
+            if (tipo === 'recibo') linkCorrect = 'ReciboHonorarios.html';
+            if (tipo === 'suspension') linkCorrect = 'SuspensionRetenciones.html';
+
             if (estadoActual === 'Devuelto' || estadoActual === 'Rechazado') {
-                const linkCorrect = tipo === 'contrato' ? 'Contratos.html' : 'Informes.html';
                 accionesHtml = `
                     <div class="doc-actions">
                         <a href="${urlArchivo}" target="_blank" class="btn-accion outline">
@@ -331,7 +364,6 @@ async function cargarHistorial(dni) {
                 </div>
             `;
         }
-
     </script>
 </body>
 </html>
