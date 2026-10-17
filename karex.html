@@ -13,13 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-    const CLOUDFLARE_SECRET_KEY = 'b2f4e16e-10b3-4e57-8117-1446bdc1adee_32aef4ab-0f9d-40d6-bb4c-0f84490a36cc';
-    const CLOUDFLARE_KEY = 'b2f4e16e-10b3-4e57-8117-1446bdc1adee_32aef4ab-0f9d-40d6-bb4c-0f84490a36cc';
-    const CLOUDFLARE_KEY_MURAL = 'b2f4e16e-10b3-4e57-8117-1446bdc1adee_32aef4ab-0f9d-40d6-bb4c-0f84490a36cc';
-    const SUPABASE_URL = 'https://galywfaztkjiybvopurq.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhbHl3ZmF6dGtqaXlidm9wdXJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzOTM1NDksImV4cCI6MjEwNDk2OTU0OX0.lNkLOAArZmj8z4C8f_QoivJ4JHM_jQaoF6Bv3fxe85U';
-</script>
+    <script src="config.js"></script>
 
     <script>
         tailwind.config = {
@@ -592,6 +586,9 @@ html.dark [id^="modal-"] button.border {
 <a href="#" class="nav-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white transition-colors" data-target="avisos">
     <img src="avisos.png" alt="" class="nav-image w-5 h-5 mr-3 object-contain rounded-sm"> Mural de Avisos
 </a>
+<a href="#" class="nav-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white transition-colors" data-target="buzon">
+    <i class="fa-solid fa-envelope-open-text w-5 mr-3 text-center"></i> Buzón de Sugerencias
+</a>
         </nav>
     </aside>
     
@@ -999,17 +996,13 @@ html.dark [id^="modal-"] button.border {
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Notas</p>
                     <p id="ver-notas" class="text-xs text-slate-600 italic"></p>
                 </div>
-                <div id="ver-contrato-motivo-container" class="hidden">
-    <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wider mb-1">Motivo del rechazo</p>
-    <div class="bg-rose-50 border border-rose-200 rounded-md p-3 text-xs text-rose-800 italic" id="ver-contrato-motivo"></div>
-</div>
 
                 <div class="pt-3 border-t border-slate-200">
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Cambiar Estado</p>
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="cambiarEstadoContrato('Revisado')" class="estado-btn text-xs py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-100 font-medium">Revisado</button>
                         <button onclick="cambiarEstadoContrato('Aprobado')" class="estado-btn text-xs py-2 rounded-md border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium">Aprobado</button>
-                        <button onclick="abrirModalRechazar('contrato', contratoActualViendose.id)" class="estado-btn text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
+                        <button onclick="cambiarEstadoContrato('Rechazado')" class="estado-btn text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
                         <button onclick="cambiarEstadoContrato('Pendiente')" class="estado-btn text-xs py-2 rounded-md border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium">Pendiente</button>
                     </div>
                 </div>
@@ -1041,33 +1034,7 @@ html.dark [id^="modal-"] button.border {
         </div>
     </div>
 </div>
-<!-- MODAL: RECHAZAR CON MOTIVO -->
-<div id="modal-rechazar" class="fixed inset-0 z-[180] hidden items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
-    <div class="w-full max-w-md rounded-lg bg-white shadow-2xl overflow-hidden">
-        <div class="bg-rose-50 border-b border-rose-200 px-6 py-4 flex items-center gap-3">
-            <div class="h-10 w-10 rounded-full bg-rose-500 text-white flex items-center justify-center">
-                <i class="fa-solid fa-circle-xmark"></i>
-            </div>
-            <div>
-                <h3 class="font-bold text-slate-800 text-lg">Rechazar Documento</h3>
-                <p class="text-xs text-slate-600">Explica el motivo del rechazo para que el trabajador corrija</p>
-            </div>
-        </div>
-        <form id="form-rechazar" class="p-6 space-y-4">
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-2">Motivo del rechazo *</label>
-                <textarea id="motivo-rechazo" rows="4" required maxlength="500" placeholder="Ej. Monto incorrecto, periodo incorrecto, archivo ilegible..." class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-rose-500 focus:border-rose-500"></textarea>
-                <p class="text-xs text-slate-400 mt-1"><span id="contador-rechazo">0</span>/500 caracteres</p>
-            </div>
-            <div class="flex justify-end gap-3 pt-2 border-t border-slate-100">
-                <button type="button" onclick="cerrarModalRechazar()" class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancelar</button>
-                <button type="submit" id="btn-confirmar-rechazo" class="rounded-md bg-rose-500 hover:bg-rose-600 text-white px-5 py-2 text-sm font-medium shadow-sm">
-                    <i class="fa-solid fa-paper-plane mr-2"></i>Confirmar Rechazo
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+
             <!-- VISTA EDITADA: DECLARACIONES JURADAS (FALTAS)-->
             <div id="view-docs-ddjj" class="view-section hidden animate-fade-in">
                 <div class="mb-6">
@@ -1725,7 +1692,7 @@ html.dark [id^="modal-"] button.border {
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="cambiarEstadoRecibo('Revisado')" class="text-xs py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-100 font-medium">Revisado</button>
                         <button onclick="cambiarEstadoRecibo('Aprobado')" class="text-xs py-2 rounded-md border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium">Aprobado</button>
-                        <button onclick="abrirModalRechazar('recibo', reciboActualViendose.id)" class="text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
+                        <button onclick="cambiarEstadoRecibo('Rechazado')" class="text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
                         <button onclick="cambiarEstadoRecibo('Pendiente')" class="text-xs py-2 rounded-md border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium">Pendiente</button>
                     </div>
                 </div>
@@ -1795,16 +1762,12 @@ html.dark [id^="modal-"] button.border {
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Estado Actual</p>
                     <span id="ver-suspension-estado" class="inline-block px-2 py-1 rounded-md text-xs font-semibold"></span>
                 </div>
-                <div id="ver-suspension-motivo-container" class="hidden">
-    <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wider mb-1">Motivo del rechazo</p>
-    <div class="bg-rose-50 border border-rose-200 rounded-md p-3 text-xs text-rose-800 italic" id="ver-suspension-motivo"></div>
-</div>
                 <div class="pt-3 border-t border-slate-200 space-y-2">
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Cambiar Estado</p>
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="cambiarEstadoSuspension('Revisado')" class="text-xs py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-100 font-medium">Revisado</button>
                         <button onclick="cambiarEstadoSuspension('Aprobado')" class="text-xs py-2 rounded-md border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium">Aprobado</button>
-                        <button onclick="abrirModalRechazar('suspension', suspensionActualViendose.id)" class="text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
+                        <button onclick="cambiarEstadoSuspension('Rechazado')" class="text-xs py-2 rounded-md border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium">Rechazado</button>
                         <button onclick="cambiarEstadoSuspension('Pendiente')" class="text-xs py-2 rounded-md border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium">Pendiente</button>
                     </div>
                 </div>
@@ -1893,6 +1856,157 @@ html.dark [id^="modal-"] button.border {
                             </table>
                         </div>
                     </section>
+                </div>
+            </div>
+                    <!-- VISTA: BUZÓN DE SUGERENCIAS -->
+            <div id="view-buzon" class="view-section hidden animate-fade-in">
+                <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-violet-600">Comunicación Interna</p>
+                        <h1 class="text-2xl font-bold text-slate-800 mt-1">Buzón de Sugerencias y Reclamos</h1>
+                        <p class="text-sm text-slate-500 mt-1">Mensajes enviados por los trabajadores desde el Portal.</p>
+                    </div>
+                </div>
+
+                <!-- KPIs -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+                        <p class="text-xs font-medium text-slate-500">Total Mensajes</p>
+                        <p id="kpi-total-buzon" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+                        <p class="text-xs font-medium text-amber-600">Pendientes</p>
+                        <p id="kpi-buzon-pendientes" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+                        <p class="text-xs font-medium text-sky-600">Revisados</p>
+                        <p id="kpi-buzon-revisados" class="text-2xl font-bold text-sky-600 mt-1">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+                        <p class="text-xs font-medium text-emerald-600">Atendidos</p>
+                        <p id="kpi-buzon-atendidos" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+                    </div>
+                </div>
+
+                <!-- Tabla -->
+                <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-200 bg-slate-50">
+                        <div class="flex flex-col gap-3">
+                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                                <h3 class="font-semibold text-slate-800">Registros</h3>
+                                <div class="relative w-full lg:w-80">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                    <input type="search" id="buscar-buzon" placeholder="Buscar nombre, asunto..." class="w-full border border-slate-300 rounded-md pl-9 pr-10 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-corporate-accent">
+                                    <button type="button" id="btn-limpiar-buzon" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                                <select id="filtro-tipo-buzon" class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-corporate-accent">
+                                    <option value="Todos">Todos los tipos</option>
+                                    <option value="Sugerencia">Sugerencias</option>
+                                    <option value="Reclamo">Reclamos</option>
+                                </select>
+                                <select id="filtro-estado-buzon" class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-corporate-accent">
+                                    <option value="Todos">Todos los estados</option>
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Revisado">Revisado</option>
+                                    <option value="Atendido">Atendido</option>
+                                </select>
+                                <div class="col-span-2 lg:col-span-2 flex items-center">
+                                    <button type="button" id="btn-limpiar-filtros-buzon" class="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100">
+                                        <i class="fa-solid fa-eraser mr-1"></i>Limpiar filtros
+                                    </button>
+                                </div>
+                            </div>
+                            <p id="resumen-buzon" class="text-xs text-slate-500"></p>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto no-scrollbar">
+                        <table class="min-w-[900px] w-full divide-y divide-slate-200 text-sm">
+                            <thead class="bg-white">
+                                <tr>
+                                    <th class="px-5 py-3 text-left font-medium text-slate-500 uppercase tracking-wider text-xs">Fecha</th>
+                                    <th class="px-5 py-3 text-left font-medium text-slate-500 uppercase tracking-wider text-xs">Trabajador</th>
+                                    <th class="px-5 py-3 text-center font-medium text-slate-500 uppercase tracking-wider text-xs">Tipo</th>
+                                    <th class="px-5 py-3 text-left font-medium text-slate-500 uppercase tracking-wider text-xs">Asunto</th>
+                                    <th class="px-5 py-3 text-center font-medium text-slate-500 uppercase tracking-wider text-xs">Estado</th>
+                                    <th class="px-5 py-3 text-right font-medium text-slate-500 uppercase tracking-wider text-xs">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-buzon" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200 px-5 py-3">
+                        <p id="pagina-buzon" class="text-xs text-slate-500"></p>
+                        <div class="flex gap-2">
+                            <button type="button" id="btn-buzon-anterior" class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Anterior</button>
+                            <button type="button" id="btn-buzon-siguiente" class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Siguiente</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL: VER Y RESPONDER BUZÓN -->
+            <div id="modal-ver-buzon" class="fixed inset-0 z-[170] hidden items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
+                <div class="w-full max-w-2xl rounded-lg bg-white shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+                    <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center flex-shrink-0">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="h-10 w-10 rounded-full bg-violet-600 text-white flex items-center justify-center text-lg flex-shrink-0">
+                                <i class="fa-solid fa-envelope-open-text"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <h3 class="font-bold text-slate-800 text-lg truncate">Detalle del Mensaje</h3>
+                                <p id="ver-buzon-subtitulo" class="text-xs text-slate-500"></p>
+                            </div>
+                        </div>
+                        <button onclick="cerrarModalBuzon()" class="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 h-8 w-8 rounded-full flex items-center justify-center border border-slate-200 flex-shrink-0">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-6 overflow-y-auto space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Trabajador</p>
+                                <p id="ver-buzon-nombre" class="text-sm font-semibold text-slate-800"></p>
+                                <p id="ver-buzon-dni" class="text-xs text-slate-500"></p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tipo / Fecha</p>
+                                <span id="ver-buzon-tipo" class="inline-block px-2 py-1 rounded-md text-xs font-semibold mb-1"></span>
+                                <p id="ver-buzon-fecha" class="text-xs text-slate-500"></p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Asunto</p>
+                            <p id="ver-buzon-asunto" class="text-sm font-semibold text-slate-800"></p>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Mensaje</p>
+                            <div id="ver-buzon-mensaje" class="bg-slate-50 border border-slate-200 rounded-md p-4 text-sm text-slate-700 whitespace-pre-wrap"></div>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Estado Actual</p>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button onclick="cambiarEstadoBuzon('Pendiente')" class="text-xs py-2 rounded-md border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium">Pendiente</button>
+                                <button onclick="cambiarEstadoBuzon('Revisado')" class="text-xs py-2 rounded-md border border-sky-300 bg-sky-50 hover:bg-sky-100 text-sky-700 font-medium">Revisado</button>
+                                <button onclick="cambiarEstadoBuzon('Atendido')" class="text-xs py-2 rounded-md border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium">Atendido</button>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-200">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Respuesta al Trabajador (Opcional)</p>
+                            <textarea id="ver-buzon-respuesta" rows="3" maxlength="1000" placeholder="Escribe una respuesta..." class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-corporate-accent"></textarea>
+                            <div class="flex justify-end mt-2">
+                                <button onclick="guardarRespuestaBuzon()" class="rounded-md bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 text-sm font-medium shadow-sm">
+                                    <i class="fa-solid fa-paper-plane mr-1"></i> Guardar Respuesta
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -2023,12 +2137,12 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
             let contratosFiltrados = [];
             let paginaContratosActual = 1;
             const contratosPorPagina = 10;
-            window.contratoActualViendose = null;
+            let contratoActualViendose = null;
             let informesRecibidos = [];
             let informesFiltrados = [];
             let paginaInformesActual = 1;
             const informesPorPagina = 10;
-           window.informeActualViendose = null;
+            let informeActualViendose = null;
 
             const configuracionDocumentos = {
     DJ: { tbody: 'tbody-ddjj', columnas: ['Empleado', 'Fecha incidencia', 'Motivo', 'Supervisor'] },
@@ -2747,16 +2861,6 @@ window.verContratoRecibido = function(id) {
     document.getElementById('ver-origen').textContent = contrato.origen === 'manual' ? 'MANUAL' : 'PÚBLICO';
     document.getElementById('ver-estado').className = `inline-block px-2 py-1 rounded-md text-xs font-semibold ${estadoInfo.clase}`;
     document.getElementById('ver-estado').innerHTML = `<i class="fa-solid ${estadoInfo.icono} mr-1"></i>${estadoActual}`;
-    // Mostrar motivo si está rechazado
-const motivoContrato = document.getElementById('ver-contrato-motivo');
-if (motivoContrato) {
-    if ((contrato.estado === 'Rechazado' || contrato.estado === 'Devuelto') && contrato.motivo_devolucion) {
-        motivoContrato.textContent = contrato.motivo_devolucion;
-        motivoContrato.parentElement.classList.remove('hidden');
-    } else {
-        motivoContrato.parentElement.classList.add('hidden');
-    }
-}
 
     // Periodo
     let periodoTxt = 'N/A';
@@ -3649,6 +3753,7 @@ document.addEventListener('submit', async (e) => {
                     renderizarTodosLosDocumentos();
                     await cargarContratosRecibidos();
                     await cargarInformesRecibidos();
+                    await cargarBuzon();
                 } catch (error) {
                     Object.keys(configuracionDocumentos).forEach(categoria => mostrarEstadoDocumento(categoria, 'No se pudo cargar este módulo. Inténtalo nuevamente.', 'text-rose-600'));
                     mostrarNotificacion("Error al cargar la base de datos.", "error");
@@ -4735,7 +4840,7 @@ let recibosHonorarios = [];
 let recibosFiltrados = [];
 let paginaRecibosActual = 1;
 const recibosPorPagina = 10;
-window.reciboActualViendose = null;
+let reciboActualViendose = null;
 
 async function cargarRecibosHonorarios() {
     const tbody = document.getElementById('tbody-recibos-honorarios');
@@ -4881,16 +4986,6 @@ window.verRecibo = function(id) {
     document.getElementById('ver-recibo-origen').textContent = r.origen === 'manual' ? 'MANUAL' : 'PÚBLICO';
     document.getElementById('ver-recibo-estado').className = `inline-block px-2 py-1 rounded-md text-xs font-semibold ${estInfo.clase}`;
     document.getElementById('ver-recibo-estado').innerHTML = `<i class="fa-solid ${estInfo.icono} mr-1"></i>${estadoR}`;
-    // Mostrar motivo si está rechazado
-const motivoRecibo = document.getElementById('ver-recibo-motivo');
-if (motivoRecibo) {
-    if ((r.estado === 'Rechazado' || r.estado === 'Devuelto') && r.motivo_devolucion) {
-        motivoRecibo.textContent = r.motivo_devolucion;
-        motivoRecibo.parentElement.classList.remove('hidden');
-    } else {
-        motivoRecibo.parentElement.classList.add('hidden');
-    }
-}
 
     const url = r.url_archivo;
     const ext = url.split('.').pop().toLowerCase().split('?')[0];
@@ -5027,7 +5122,7 @@ let suspensiones = [];
 let suspensionesFiltradas = [];
 let paginaSuspensionesActual = 1;
 const suspensionesPorPagina = 10;
-window.suspensionActualViendose = null;
+let suspensionActualViendose = null;
 
 async function cargarSuspensiones() {
     const tbody = document.getElementById('tbody-suspensiones');
@@ -5153,16 +5248,6 @@ window.verSuspension = function(id) {
     document.getElementById('ver-suspension-origen').textContent = s.origen === 'manual' ? 'MANUAL' : 'PÚBLICO';
     document.getElementById('ver-suspension-estado').className = `inline-block px-2 py-1 rounded-md text-xs font-semibold ${estInfo.clase}`;
     document.getElementById('ver-suspension-estado').innerHTML = `<i class="fa-solid ${estInfo.icono} mr-1"></i>${estadoS}`;
-    // Mostrar motivo si está rechazado
-const motivoSuspension = document.getElementById('ver-suspension-motivo');
-if (motivoSuspension) {
-    if ((s.estado === 'Rechazado' || s.estado === 'Devuelto') && s.motivo_devolucion) {
-        motivoSuspension.textContent = s.motivo_devolucion;
-        motivoSuspension.parentElement.classList.remove('hidden');
-    } else {
-        motivoSuspension.parentElement.classList.add('hidden');
-    }
-}
 
     const url = s.url_archivo;
     const ext = url.split('.').pop().toLowerCase().split('?')[0];
@@ -5310,79 +5395,251 @@ async function descargarArchivoWorker(url, nombreFinal) {
 // Cargar al iniciar (dentro del DOMContentLoaded principal, sin anidar)
 cargarRecibosHonorarios();
 cargarSuspensiones();
+});
 // ═══════════════════════════════════════════════════════════
-// MODAL RECHAZAR CON MOTIVO
+// BUZÓN DE SUGERENCIAS
 // ═══════════════════════════════════════════════════════════
-let rechazoPendiente = null; // { tipo: 'recibo' | 'suspension' | 'contrato', id }
+let mensajesBuzon = [];
+let buzonFiltrados = [];
+let paginaBuzonActual = 1;
+const buzonPorPagina = 10;
+window.buzonActualViendose = null;
 
-window.abrirModalRechazar = function(tipo, id) {
-    rechazoPendiente = { tipo, id };
-    document.getElementById('motivo-rechazo').value = '';
-    document.getElementById('contador-rechazo').textContent = '0';
-    const modal = document.getElementById('modal-rechazar');
+const configuracionEstadosBuzon = {
+    'Pendiente': { clase: 'bg-amber-100 text-amber-800', icono: 'fa-clock' },
+    'Revisado':  { clase: 'bg-sky-100 text-sky-800',     icono: 'fa-eye' },
+    'Atendido':  { clase: 'bg-emerald-100 text-emerald-800', icono: 'fa-check-circle' }
+};
+
+async function cargarBuzon() {
+    const tbody = document.getElementById('tbody-buzon');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-10 text-center text-sm text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Cargando mensajes...</td></tr>';
+    try {
+        const resp = await fetch('https://kardex-apis.angelve581.workers.dev/admin/buzon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Kardex-Key': CLOUDFLARE_SECRET_KEY }
+        });
+        if (!resp.ok) throw new Error(`Error ${resp.status}`);
+        const json = await resp.json();
+        mensajesBuzon = json.mensajes || [];
+        aplicarFiltrosBuzon();
+        actualizarKPIsBuzon();
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-10 text-center text-sm text-rose-600">Error: ${e.message}</td></tr>`;
+    }
+}
+
+function actualizarKPIsBuzon() {
+    const total = mensajesBuzon.length;
+    const pend = mensajesBuzon.filter(m => (m.estado || 'Pendiente') === 'Pendiente').length;
+    const rev = mensajesBuzon.filter(m => m.estado === 'Revisado').length;
+    const aten = mensajesBuzon.filter(m => m.estado === 'Atendido').length;
+    document.getElementById('kpi-total-buzon').textContent = total;
+    document.getElementById('kpi-buzon-pendientes').textContent = pend;
+    document.getElementById('kpi-buzon-revisados').textContent = rev;
+    document.getElementById('kpi-buzon-atendidos').textContent = aten;
+}
+
+function aplicarFiltrosBuzon() {
+    const busqueda = normalizarTexto(document.getElementById('buscar-buzon')?.value || '');
+    function normalizarTexto(valor) {
+    return String(valor || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+}
+    const tipo = document.getElementById('filtro-tipo-buzon')?.value || 'Todos';
+    const estado = document.getElementById('filtro-estado-buzon')?.value || 'Todos';
+
+    buzonFiltrados = mensajesBuzon.filter(m => {
+        const texto = normalizarTexto(`${m.nombre_completo || ''} ${m.asunto || ''} ${m.mensaje || ''}`);
+        if (busqueda && !texto.includes(busqueda)) return false;
+        if (tipo !== 'Todos' && m.tipo !== tipo) return false;
+        const estadoM = m.estado || 'Pendiente';
+        if (estado !== 'Todos' && estadoM !== estado) return false;
+        return true;
+    });
+    paginaBuzonActual = 1;
+    renderizarBuzon();
+}
+
+function renderizarBuzon() {
+    const tbody = document.getElementById('tbody-buzon');
+    if (!tbody) return;
+    const total = buzonFiltrados.length;
+    const totalPag = Math.max(1, Math.ceil(total / buzonPorPagina));
+    paginaBuzonActual = Math.min(paginaBuzonActual, totalPag);
+    const inicio = (paginaBuzonActual - 1) * buzonPorPagina;
+    const visibles = buzonFiltrados.slice(inicio, inicio + buzonPorPagina);
+    
+    tbody.innerHTML = '';
+    if (!visibles.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-10 text-center text-sm text-slate-500"><i class="fa-solid fa-inbox text-3xl text-slate-300 block mb-2"></i>No hay mensajes con esos filtros.</td></tr>';
+        document.getElementById('resumen-buzon').textContent = 'Mostrando 0 registros';
+        document.getElementById('pagina-buzon').textContent = 'Página 1 de 1';
+        document.getElementById('btn-buzon-anterior').disabled = true;
+        document.getElementById('btn-buzon-siguiente').disabled = true;
+        return;
+    }
+
+    visibles.forEach(m => {
+        const fecha = new Date(m.creado_en).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+        const estadoM = m.estado || 'Pendiente';
+        const estInfo = configuracionEstadosBuzon[estadoM];
+        
+        const tipoHtml = m.tipo === 'Reclamo' 
+            ? '<span class="bg-rose-100 text-rose-700 rounded px-2 py-0.5 text-[10px] font-bold">RECLAMO</span>'
+            : '<span class="bg-violet-100 text-violet-700 rounded px-2 py-0.5 text-[10px] font-bold">SUGERENCIA</span>';
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors';
+        tr.innerHTML = `
+            <td class="px-5 py-3 whitespace-nowrap text-xs text-slate-600">${fecha}</td>
+            <td class="px-5 py-3">
+                <p class="text-sm font-semibold text-slate-800">${m.nombre_completo}</p>
+                <p class="text-xs text-slate-500">DNI: ${m.dni}</p>
+            </td>
+            <td class="px-5 py-3 whitespace-nowrap text-center">${tipoHtml}</td>
+            <td class="px-5 py-3 text-sm text-slate-700 max-w-[200px] truncate">${m.asunto}</td>
+            <td class="px-5 py-3 whitespace-nowrap text-center">
+                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold ${estInfo.clase}">
+                    <i class="fa-solid ${estInfo.icono}"></i> ${estadoM}
+                </span>
+            </td>
+            <td class="px-5 py-3 whitespace-nowrap text-right">
+                <button onclick="verBuzon('${m.id}')" class="text-corporate-accent hover:text-sky-800 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded transition-colors text-xs font-semibold">
+                    <i class="fa-solid fa-eye mr-1"></i>Ver / Responder
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('resumen-buzon').textContent = `Mostrando ${inicio + 1}-${Math.min(inicio + buzonPorPagina, total)} de ${total} mensajes`;
+    document.getElementById('pagina-buzon').textContent = `Página ${paginaBuzonActual} de ${totalPag}`;
+    document.getElementById('btn-buzon-anterior').disabled = paginaBuzonActual === 1;
+    document.getElementById('btn-buzon-siguiente').disabled = paginaBuzonActual === totalPag;
+}
+
+window.verBuzon = function(id) {
+    const m = mensajesBuzon.find(x => x.id == id);
+    if (!m) return;
+    buzonActualViendose = m;
+
+    const fecha = new Date(m.creado_en).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const estadoM = m.estado || 'Pendiente';
+    const estInfo = configuracionEstadosBuzon[estadoM];
+    const tipoHtml = m.tipo === 'Reclamo' 
+        ? '<span class="bg-rose-100 text-rose-700 rounded px-2 py-1 text-[10px] font-bold">RECLAMO</span>'
+        : '<span class="bg-violet-100 text-violet-700 rounded px-2 py-1 text-[10px] font-bold">SUGERENCIA</span>';
+
+    document.getElementById('ver-buzon-subtitulo').textContent = `${m.tipo} - ${estadoM}`;
+    document.getElementById('ver-buzon-nombre').textContent = m.nombre_completo;
+    document.getElementById('ver-buzon-dni').textContent = `DNI: ${m.dni}`;
+    document.getElementById('ver-buzon-tipo').outerHTML = `<div id="ver-buzon-tipo">${tipoHtml}</div>`;
+    document.getElementById('ver-buzon-fecha').textContent = fecha;
+    document.getElementById('ver-buzon-asunto').textContent = m.asunto;
+    document.getElementById('ver-buzon-mensaje').textContent = m.mensaje;
+    document.getElementById('ver-buzon-respuesta').value = m.respuesta || '';
+
+    const modal = document.getElementById('modal-ver-buzon');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 };
 
-window.cerrarModalRechazar = function() {
-    const modal = document.getElementById('modal-rechazar');
+window.cerrarModalBuzon = function() {
+    const modal = document.getElementById('modal-ver-buzon');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
-    rechazoPendiente = null;
+    buzonActualViendose = null;
 };
 
-document.getElementById('motivo-rechazo')?.addEventListener('input', (e) => {
-    document.getElementById('contador-rechazo').textContent = e.target.value.length;
-});
-
-document.getElementById('form-rechazar')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!rechazoPendiente) return;
-
-    const motivo = document.getElementById('motivo-rechazo').value.trim();
-    if (!motivo) {
-        mostrarNotificacion('Escribe el motivo del rechazo.', 'warning');
-        return;
-    }
-
-    const btn = document.getElementById('btn-confirmar-rechazo');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Procesando...';
-
+window.cambiarEstadoBuzon = async function(nuevoEstado) {
+    if (!buzonActualViendose) return;
     try {
-        const { tipo, id } = rechazoPendiente;
-        let endpoint = '';
-
-        if (tipo === 'recibo') endpoint = '/admin/recibo/estado';
-        else if (tipo === 'suspension') endpoint = '/admin/suspension/estado';
-        else if (tipo === 'contrato') endpoint = '/admin/contrato/estado';
-
-        const resp = await fetch(`https://kardex-apis.angelve581.workers.dev${endpoint}`, {
+        const resp = await fetch('https://kardex-apis.angelve581.workers.dev/admin/buzon/estado', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Kardex-Key': CLOUDFLARE_SECRET_KEY },
-            body: JSON.stringify({ id, estado: 'Rechazado', motivo_devolucion: motivo })
+            body: JSON.stringify({ id: buzonActualViendose.id, estado: nuevoEstado })
         });
-
         if (!resp.ok) throw new Error(`Error ${resp.status}`);
-
-        mostrarNotificacion('Documento rechazado con motivo.', 'success');
-        cerrarModalRechazar();
-
-        if (tipo === 'recibo') await cargarRecibosHonorarios();
-        else if (tipo === 'suspension') await cargarSuspensiones();
-        else if (tipo === 'contrato') await cargarContratosRecibidos();
-
-    } catch (err) {
-        mostrarNotificacion('Error: ' + err.message, 'error');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Confirmar Rechazo';
+        
+        buzonActualViendose.estado = nuevoEstado;
+        mostrarNotificacion(`Estado cambiado a: ${nuevoEstado}`, 'success');
+        
+        const idx = mensajesBuzon.findIndex(x => x.id === buzonActualViendose.id);
+        if (idx !== -1) mensajesBuzon[idx].estado = nuevoEstado;
+        
+        renderizarBuzon();
+        actualizarKPIsBuzon();
+        cerrarModalBuzon();
+    } catch (e) {
+        mostrarNotificacion('Error: ' + e.message, 'error');
     }
-});
+};
 
-document.getElementById('modal-rechazar')?.addEventListener('click', (e) => {
-    if (e.target.id === 'modal-rechazar') cerrarModalRechazar();
+window.guardarRespuestaBuzon = async function() {
+    if (!buzonActualViendose) return;
+    const respuesta = document.getElementById('ver-buzon-respuesta').value.trim();
+    if (!respuesta) return mostrarNotificacion('Escribe una respuesta antes de guardar.', 'warning');
+    
+    try {
+        const resp = await fetch('https://kardex-apis.angelve581.workers.dev/admin/buzon/estado', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Kardex-Key': CLOUDFLARE_SECRET_KEY },
+            // Si respondes, cambiamos automáticamente a "Atendido"
+            body: JSON.stringify({ id: buzonActualViendose.id, estado: 'Atendido', respuesta: respuesta })
+        });
+        if (!resp.ok) throw new Error(`Error ${resp.status}`);
+        
+        buzonActualViendose.estado = 'Atendido';
+        buzonActualViendose.respuesta = respuesta;
+        mostrarNotificacion('Respuesta guardada y marcada como Atendido.', 'success');
+        
+        const idx = mensajesBuzon.findIndex(x => x.id === buzonActualViendose.id);
+        if (idx !== -1) {
+            mensajesBuzon[idx].estado = 'Atendido';
+            mensajesBuzon[idx].respuesta = respuesta;
+        }
+        
+        renderizarBuzon();
+        actualizarKPIsBuzon();
+        cerrarModalBuzon();
+    } catch (e) {
+        mostrarNotificacion('Error: ' + e.message, 'error');
+    }
+};
+
+// Eventos de filtros del buzón
+document.getElementById('buscar-buzon')?.addEventListener('input', (e) => {
+    document.getElementById('btn-limpiar-buzon').classList.toggle('hidden', !e.target.value);
+    aplicarFiltrosBuzon();
 });
+document.getElementById('btn-limpiar-buzon')?.addEventListener('click', () => {
+    document.getElementById('buscar-buzon').value = '';
+    document.getElementById('btn-limpiar-buzon').classList.add('hidden');
+    aplicarFiltrosBuzon();
+});
+document.getElementById('filtro-tipo-buzon')?.addEventListener('change', aplicarFiltrosBuzon);
+document.getElementById('filtro-estado-buzon')?.addEventListener('change', aplicarFiltrosBuzon);
+document.getElementById('btn-limpiar-filtros-buzon')?.addEventListener('click', () => {
+    document.getElementById('buscar-buzon').value = '';
+    document.getElementById('filtro-tipo-buzon').value = 'Todos';
+    document.getElementById('filtro-estado-buzon').value = 'Todos';
+    document.getElementById('btn-limpiar-buzon').classList.add('hidden');
+    aplicarFiltrosBuzon();
+});
+document.getElementById('btn-buzon-anterior')?.addEventListener('click', () => {
+    if (paginaBuzonActual > 1) { paginaBuzonActual--; renderizarBuzon(); }
+});
+document.getElementById('btn-buzon-siguiente')?.addEventListener('click', () => {
+    const totalPag = Math.ceil(buzonFiltrados.length / buzonPorPagina);
+    if (paginaBuzonActual < totalPag) { paginaBuzonActual++; renderizarBuzon(); }
+});
+document.getElementById('modal-ver-buzon')?.addEventListener('click', (e) => {
+    if (e.target.id === 'modal-ver-buzon') cerrarModalBuzon();
 });
 </script> 
 </body>
