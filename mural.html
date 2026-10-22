@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mural de Avisos - SIMECAR S.A.C.</title>
+    <title>PORTAL INSTITUCIONAL - SIMECAR S.A.C.</title>
     
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://galywfaztkjiybvopurq.supabase.co https://kardex-apis.angelve581.workers.dev; img-src 'self' data: https://pub-f67958c517bd467b837caa86c2619380.r2.dev https://kardex-apis.angelve581.workers.dev;">
     
@@ -22,8 +22,6 @@
             padding: 0;
             color: #1f2937;
         }
-
-        /* === HEADER CORPORATIVO === */
         .header-corp {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             padding: 32px 24px 40px;
@@ -85,8 +83,6 @@
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.5; transform: scale(0.85); }
         }
-
-        /* === CONTENEDOR === */
         #contenedor-avisos {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -97,8 +93,6 @@
             position: relative;
             z-index: 2;
         }
-
-        /* === TARJETA === */
         .tarjeta {
             background: white;
             border-radius: 16px;
@@ -577,7 +571,6 @@
                                     <p style="margin: 4px 0 0 0; font-size: 11px; color: #6b7280;">Haz clic para abrir o descargar</p>
                                 `;
 
-                                // Botón con fetch + header X-Kardex-Key
                                 const btnDiv = document.createElement('button');
                                 btnDiv.type = 'button';
                                 const nombreLimpio = `${aviso.titulo.replace(/\s+/g, '_')}.${extension}`;
@@ -687,7 +680,6 @@
                         await cargarAvisos();
                     }
                 } catch (err) {
-                    // Silencioso
                 }
             }, 30000);
 
